@@ -7,7 +7,7 @@
 - **Видимый ответ пользователю** — только итоговый текст ассистента в `choices[].message.content` (и эквивалентные дельты в stream). Маршрутизация, классификатор, версии промптов и прочая диагностика **не** попадают в это поле.
 - **Trace** (`X-GPTHub-Trace`, логи `execution_trace`) — отдельный канал. Оркестратор **не** склеивает trace в `content`.
 - **Canned greeting:** при `task_type == greeting_or_tiny` без изображений и включённом `GREETING_CANNED_RESPONSE_ENABLED` ответ собирается локально; в trace — `canned_response: true`, вызова LiteLLM нет.
-- Утечки «мышления» в UI могут идти от **модели** (текст в `content`) или от **клиента** (отдельные поля вроде `reasoning` / `reasoning_content` от провайдера — см. [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md)). Промпты снижают риск цитирования мета-инструкций; жёсткая гарантия — комбинация настроек UI и опционально `ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE` (только non-stream).
+- Утечки «мышления» в UI могут идти от **модели** (текст в `content`) или от **клиента** (отдельные поля вроде `reasoning` / `reasoning_content` от провайдера — см. [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md)). Промпты снижают риск цитирования мета-инструкций. По умолчанию оркестратор шлёт **`reasoning.exclude`** upstream и **вырезает** `reasoning*` / `thinking*` из ответа (non-stream и stream); при необходимости — настройки Reasoning Tags в Open WebUI. Если CoT всё ещё целиком в **`content`**, last-resort: **`ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE=true`** (только non-stream).
 
 ## Порядок (от сильного к слабому влиянию на «режим» ответа)
 

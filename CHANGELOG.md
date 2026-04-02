@@ -21,6 +21,8 @@
 
 ### Changed
 
+- [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md) — контракт видимости: дефолтные `reasoning.exclude` и strip ответа; preamble strip как last-resort для CoT в `content`.
+- [versions_dep/v3/apps/orchestrator/README.md](versions_dep/v3/apps/orchestrator/README.md) — canned / reasoning кратко и ссылка на PROMPT_PRECEDENCE.
 - [versions_dep/v3/README.md](versions_dep/v3/README.md), [docs/DEMO_PROMPTS.md](docs/DEMO_PROMPTS.md) — canned small-talk («как дела?»), `reasoning.exclude` / strip полей, ссылка на OPENWEBUI при «Рассуждение» в UI.
 - [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — сервис `orchestrator`: `GREETING_CANNED_RESPONSE_ENABLED`, `GREETING_CANNED_MESSAGE`, `ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE`.
 - [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — `ENABLE_WEB_SEARCH` по умолчанию `true`; сервис `orchestrator`: `INJECT_REQUEST_DATETIME`, `ORCHESTRATOR_CLOCK_TZ`.
