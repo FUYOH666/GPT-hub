@@ -1,0 +1,151 @@
+# GPTHub v3 — Open WebUI → Orchestrator → LiteLLM (см. README.md, ARCHITECTURE.md)
+# Конфиг LiteLLM переиспользуется из v2_c2 (единый источник алиасов).
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm@sha256:9e1536c6a9219519f024f221706b20b012ca5176988164798adc5c7fe011e5d5
+    container_name: gpthub-v3-litellm
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../v2_c2/litellm/config.yaml:/app/config.yaml:ro
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENROUTER_API_BASE: ${OPENROUTER_API_BASE:-https://openrouter.ai/api/v1}
+      OR_SITE_URL: ${OR_SITE_URL:-http://localhost:3000}
+      OR_APP_NAME: ${OR_APP_NAME:-GPTHub}
+      MWS_GPT_API_BASE: ${MWS_GPT_API_BASE:-}
+      MWS_GPT_API_KEY: ${MWS_GPT_API_KEY:-}
+      LLM_INSTRUCT_API_BASE: ${LLM_INSTRUCT_API_BASE:-}
+      LLM_INSTRUCT_API_KEY: ${LLM_INSTRUCT_API_KEY:-local-instruct}
+    command:
+      - "--config"
+      - "/app/config.yaml"
+      - "--port"
+      - "4000"
+    networks:
+      - gpthub-v3-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gpthub-v3-orchestrator
+    restart: unless-stopped
+    ports:
+      - "8089:8000"
+    environment:
+      LITELLM_BASE_URL: http://litellm:4000
+      ORCHESTRATOR_API_KEY: ${LITELLM_MASTER_KEY}
+      LITELLM_TIMEOUT_SECONDS: ${LITELLM_TIMEOUT_SECONDS:-600}
+      AUTO_ROUTE_MODEL: ${AUTO_ROUTE_MODEL:-true}
+      CODE_ROUTE_PREFERENCE: ${CODE_ROUTE_PREFERENCE:-local}
+      ORCHESTRATOR_LITELLM_FALLBACK: ${ORCHESTRATOR_LITELLM_FALLBACK:-true}
+      ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS: ${ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS:-4}
+    depends_on:
+      litellm:
+        condition: service_healthy
+    networks:
+      - gpthub-v3-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # BGE hybrid отдаёт dense_embedding; Open WebUI RAG ждёт поле embedding (OpenAI).
+  embedding-shim:
+    build:
+      context: ./embedding_shim
+      dockerfile: Dockerfile
+    container_name: gpthub-v3-embedding-shim
+    restart: unless-stopped
+    environment:
+      BGE_EMBEDDING_UPSTREAM: ${BGE_EMBEDDING_UPSTREAM:-http://host.docker.internal:9001}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - gpthub-v3-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    container_name: gpthub-v3-open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-v3-data:/app/backend/data
+    environment:
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+      WEBUI_URL: ${WEBUI_URL:-http://localhost:3000}
+      ENABLE_SIGNUP: ${ENABLE_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-pending}
+      ENABLE_PERSISTENT_CONFIG: ${ENABLE_PERSISTENT_CONFIG:-true}
+      ENABLE_PASSWORD_VALIDATION: ${ENABLE_PASSWORD_VALIDATION:-false}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
+      WEBUI_ADMIN_NAME: ${WEBUI_ADMIN_NAME:-Admin}
+      OPENAI_API_BASE_URL: http://orchestrator:8000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      # Список моделей и выбор по умолчанию (Open WebUI запрашивает GET …/v1/models у оркестратора)
+      DEFAULT_MODELS: ${DEFAULT_MODELS:-gpt-hub-strong}
+      DEFAULT_PINNED_MODELS: ${DEFAULT_PINNED_MODELS:-gpt-hub-strong,gpt-hub-fast,gpt-hub-vision,gpt-hub-turbo}
+      TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub-strong}
+      ENABLE_MEMORIES: ${ENABLE_MEMORIES:-true}
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE:-openai}
+      RAG_OPENAI_API_BASE_URL: ${RAG_OPENAI_API_BASE_URL:-http://embedding-shim:8000/v1}
+      RAG_OPENAI_API_KEY: ${RAG_OPENAI_API_KEY:-local-embedding}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-BAAI/bge-m3}
+      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE:-external}
+      RAG_EXTERNAL_RERANKER_URL: ${RAG_EXTERNAL_RERANKER_URL:-http://host.docker.internal:9002/v1/rerank}
+      RAG_EXTERNAL_RERANKER_API_KEY: ${RAG_EXTERNAL_RERANKER_API_KEY:-}
+      AUDIO_STT_ENGINE: ${AUDIO_STT_ENGINE:-openai}
+      AUDIO_STT_OPENAI_API_BASE_URL: ${AUDIO_STT_OPENAI_API_BASE_URL:-http://host.docker.internal:8001/v1}
+      AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
+      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
+      AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
+    depends_on:
+      litellm:
+        condition: service_healthy
+      orchestrator:
+        condition: service_healthy
+      embedding-shim:
+        condition: service_healthy
+    networks:
+      - gpthub-v3-net
+
+networks:
+  gpthub-v3-net:
+    driver: bridge
+
+volumes:
+  open-webui-v3-data:

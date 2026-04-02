@@ -1,0 +1,73 @@
+# LiteLLM Proxy — см. https://docs.litellm.ai/docs/proxy/configs
+# OpenRouter free: https://openrouter.ai/models?pricing=free
+# Алиасы: strong/doc/fast/reasoning-or/vision/fallback (OpenRouter free где указано), turbo — свой instruct :8002.
+# Роли оркестратора → алиасы: см. gpthub_orchestrator/data/model_roles.yaml (v3).
+# Fallbacks: proxy-уровень + оркестратор (см. ORCHESTRATOR_LITELLM_FALLBACK в v3).
+# Оговорка: запрос строго мультимодальный — strong может отказать; тогда другая VL-модель или платный tier.
+# Guardrails: отключено для RAG/PDF — detect_prompt_injection даёт ложные срабатывания на длинный текст из документов (400 + обрыв stream в WebUI).
+# Включить обратно: callbacks: ["detect_prompt_injection"] — https://docs.litellm.ai/docs/proxy/guardrails/prompt_injection
+# MWS: блок внизу, CONSTRUCTOR.md
+
+model_list:
+  - model_name: gpt-hub-strong
+    litellm_params:
+      model: openrouter/qwen/qwen3.6-plus-preview:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: gpt-hub-vision
+    litellm_params:
+      model: openrouter/google/gemma-3-27b-it:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: gpt-hub-fast
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.2-3b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: gpt-hub-doc
+    litellm_params:
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: gpt-hub-reasoning-or
+    litellm_params:
+      model: openrouter/qwen/qwen3-coder:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: gpt-hub-fallback
+    litellm_params:
+      model: openrouter/google/gemma-3-12b-it:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  # Свой GPU instruct (vLLM за gateway); model id — как в GET {base}/v1/models (см. скилл remote-llm-service)
+  - model_name: gpt-hub-turbo
+    litellm_params:
+      model: openai/qwen3-coder-30b-a3b-awq
+      api_base: os.environ/LLM_INSTRUCT_API_BASE
+      api_key: os.environ/LLM_INSTRUCT_API_KEY
+
+# --- Переключение на MWS после публикации Задачи ---
+# Замените при необходимости model_list; gpt-hub-turbo можно оставить на свой :8002 или убрать по Задаче.
+#
+# model_list:
+#   - model_name: gpt-hub-strong
+#     litellm_params:
+#       model: openai/REPLACE_WITH_MWS_MODEL_ID_STRONG
+#       api_base: os.environ/MWS_GPT_API_BASE
+#       api_key: os.environ/MWS_GPT_API_KEY
+#   ...
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  drop_params: true
+  num_retries: 2
+  fallbacks:
+    - gpt-hub-strong: [gpt-hub-doc, gpt-hub-fallback]
+    - gpt-hub-turbo: [gpt-hub-reasoning-or, gpt-hub-strong]
+    - gpt-hub-vision: [gpt-hub-fallback, gpt-hub-strong]
+    - gpt-hub-fast: [gpt-hub-strong, gpt-hub-fallback]
+    - gpt-hub-doc: [gpt-hub-strong, gpt-hub-fallback]
+    - gpt-hub-reasoning-or: [gpt-hub-strong, gpt-hub-doc, gpt-hub-fallback]
+    - gpt-hub-fallback: [gpt-hub-fast, gpt-hub-strong]

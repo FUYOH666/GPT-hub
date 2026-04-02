@@ -1,0 +1,11 @@
+# Подсказка для агента (Cursor / др.)
+
+Монорепозиторий **GPT-hub**: несколько версий стека под `versions_dep/`.
+
+- **Продуктовая разработка:** [versions_dep/v3](versions_dep/v3) — Docker Compose, Open WebUI, orchestrator, LiteLLM; конфиг LiteLLM: [versions_dep/v2_c2/litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml).
+- **Карта документов:** [README.md](README.md).
+- **Продолжение в новом чате:** [versions_dep/v3/CONTINUATION.md](versions_dep/v3/CONTINUATION.md).
+- **Публикация WebUI в интернет (канон):** [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — деплой и прокси; красивый URL на лендинге — проект сайта, не GPT-hub.
+- **Контекст для агента другого проекта (Scanovich и т.д.):** [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md).
+
+Архив без поддержки: [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md).

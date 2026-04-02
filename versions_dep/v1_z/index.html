@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal AI Chat Platform - Multimodal AI Assistant</title>
+    
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)'], ['$$', '$$'], ['\\[', '\\]']], 
+                displayMath: []
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(25, 25, 35, 0.6);
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --border-color: rgba(99, 102, 241, 0.2);
+            --glow-color: rgba(99, 102, 241, 0.3);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --code-bg: #1a1a2e;
+            --max-width: 1200px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Container */
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 8rem 0 6rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: var(--border-color);
+            border: 1px solid var(--accent-primary);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            font-weight: 300;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .tech-item {
+            padding: 0.4rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 20px var(--glow-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--glow-color);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 5rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Architecture Section */
+        .architecture-diagram {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arch-layer {
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .arch-layer:last-child {
+            margin-bottom: 0;
+        }
+
+        .layer-label {
+            position: absolute;
+            left: -180px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+        }
+
+        .layer-content {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+        }
+
+        .layer-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .layer-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .layer-item {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Code Blocks */
+        .code-block-wrapper {
+            margin: 2rem 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--code-bg);
+        }
+
+        .code-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-lang {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            padding: 0.4rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #d4d4d8;
+        }
+
+        /* Content Sections */
+        .content-block {
+            margin: 3rem 0;
+        }
+
+        .content-block h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--text-primary);
+        }
+
+        .content-block h4 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-primary);
+        }
+
+        .content-block p {
+            margin-bottom: 1.25rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .content-block ul, .content-block ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .content-block li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        .content-block strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Model Cards */
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .model-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .model-card:hover {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+
+        .model-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .model-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Memory Architecture */
+        .memory-hierarchy {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .memory-level {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .memory-level::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .memory-level h4 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .memory-level ul {
+            margin-left: 0;
+            list-style: none;
+        }
+
+        .memory-level li::before {
+            content: '→';
+            color: var(--accent-primary);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* API Documentation */
+        .api-endpoint {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .api-method {
+            display: inline-block;
+            padding: 0.35rem 0.9rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-right: 1rem;
+        }
+
+        .method-get { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .method-post { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+        .method-delete { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        .api-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+        }
+
+        .api-details {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Roadmap Timeline */
+        .roadmap-timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .roadmap-phase {
+            position: relative;
+            padding-left: 3rem;
+            padding-bottom: 3rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .roadmap-phase:last-child {
+            border-left: none;
+            padding-bottom: 0;
+        }
+
+        .phase-marker {
+            position: absolute;
+            left: -13px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            border: 3px solid var(--bg-primary);
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .phase-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .phase-status {
+            padding: 0.3rem 0.9rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-complete { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-progress { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-planned { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+
+        .phase-features {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .phase-features li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .phase-features li::before {
+            content: '✓';
+            color: var(--success-color);
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        thead {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--accent-primary);
+            font-size: 0.95rem;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 0;
+            margin-top: 5rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1.25rem;
+            }
+
+            .hero-section {
+                padding: 5rem 0 3rem;
+            }
+
+            .hero-title {
+                font-size: 2.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .layer-label {
+                position: static;
+                transform: none;
+                margin-bottom: 0.75rem;
+                display: block;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-badge">🚀 Open Source • Production Ready</div>
+            <h1 class="hero-title">Universal AI Chat Platform</h1>
+            <p class="hero-subtitle">
+                Intelligent multimodal system built on OpenWebUI — unifying text, voice, images, and file processing with automatic model selection and long-term memory
+            </p>
+            
+            <div class="tech-stack">
+                <span class="tech-item">Python</span>
+                <span class="tech-item">TypeScript</span>
+                <span class="tech-item">FastAPI</span>
+                <span class="tech-item">React</span>
+                <span class="tech-item">LLMs</span>
+                <span class="tech-item">RAG</span>
+                <span class="tech-item">Vector DB</span>
+                <span class="tech-item">WebSocket</span>
+            </div>
+
+            <div class="action-buttons">
+                <a href="#installation" class="btn btn-primary">📦 Get Started</a>
+                <a href="#api-documentation" class="btn btn-secondary">📚 API Docs</a>
+                <a href="#features-demo" class="btn btn-secondary">✨ Live Demo</a>
+                <a href="https://github.com/your-org/universal-ai-chat" target="_blank" class="btn btn-secondary">⭐ GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview">
+        <div class="container">
+            <h2 class="section-title">Project Overview</h2>
+            <p class="section-subtitle">
+                A comprehensive platform that transforms how developers interact with AI by seamlessly integrating multiple modalities into a single, intelligent interface.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">Text Chat</h3>
+                    <p class="feature-description">Natural conversation with contextual memory, supporting complex multi-turn dialogues and maintaining conversation context.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">Voice I/O</h3>
+                    <p class="feature-description">Real-time speech-to-text and text-to-speech integration for hands-free interaction with your AI assistant.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🖼️</div>
+                    <h3 class="feature-title">Image Analysis</h3>
+                    <p class="feature-description">Advanced computer vision capabilities including OCR, object detection, visual Q&A, and image generation.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <h3 class="feature-title">File Processing</h3>
+                    <p class="feature-description">Parse PDFs, source code, documents, spreadsheets, and data files with intelligent extraction.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">Smart Router</h3>
+                    <p class="feature-description">Automatic selection of optimal AI model based on task type, complexity, cost, and performance requirements.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">Long-term Memory</h3>
+                    <p class="feature-description">Personalized knowledge storage that learns from interactions, remembers preferences, and builds user profiles over time.</p>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 4rem;">
+                <h3>Target Audience</h3>
+                <ul>
+                    <li><strong>Python Developers:</strong> Backend development, ML/AI integrations, API design, and system architecture</li>
+                    <li><strong>JavaScript/TypeScript Developers:</strong> Frontend interfaces, real-time UI components, WebSocket clients, state management</li>
+                    <li><strong>AI Engineers:</strong> Model fine-tuning, RAG systems implementation, MLOps pipelines, prompt engineering</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture">
+        <div class="container">
+            <h2 class="section-title">System Architecture</h2>
+            <p class="section-subtitle">
+                Scalable microservices architecture designed for high availability, modularity, and seamless integration of diverse AI capabilities.
+            </p>
+
+            <div class="architecture-diagram">
+                <div class="arch-layer">
+                    <div class="layer-label">FRONTEND LAYER</div>
+                    <div class="layer-content">
+                        <div class="layer-title">React + TypeScript Interface</div>
+                        <div class="layer-items">
+                            <span class="layer-item">Universal Chat UI</span>
+                            <span class="layer-item">Media Components</span>
+                            <span class="layer-item">Real-time Sync (WS)</span>
+                            <span class="layer-item">State Management (Zustand)</span>
+                            <span class="layer-item">Drag & Drop Upload</span>
+                            <span class="layer-item">Voice Recorder</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: var(--accent-primary); font-size: 1.5rem; margin: 1rem 0;">↓ WebSocket / REST API ↓</div>
+
+                <div class="arch-layer">
+                    <div class="layer-label">BACKEND CORE</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Python FastAPI Server</div>
+                        <div class="layer-items">
+                            <span class="layer-item">API Gateway</span>
+                            <span class="layer-item">WebSocket Handler</span>
+                            <span class="layer-item">Auth & Security (JWT/OAuth)</span>
+                            <span class="layer-item">Session Management</span>
+                            <span class="layer-item">Rate Limiting</span>
+                            <span class="layer-item">Request Validation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: var(--accent-primary); font-size: 1.5rem; margin: 1rem 0;">↓ Internal Calls ↓</div>
+
+                <div class="arch-layer">
+                    <div class="layer-label">AI ENGINE</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Intelligent Processing Pipeline</div>
+                        <div class="layer-items">
+                            <span class="layer-item">Smart Model Router</span>
+                            <span class="layer-item">Multimodal Processor</span>
+                            <span class="layer-item">Memory Manager</span>
+                            <span class="layer-item">Tool Executor</span>
+                            <span class="layer-item">Response Generator</span>
+                            <span class="layer-item">Context Builder</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: var(--accent-primary); font-size: 1.5rem; margin: 1rem 0;">↓ Data Layer ↓</div>
+
+                <div class="arch-layer">
+                    <div class="layer-label">INFRASTRUCTURE</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Storage & Services</div>
+                        <div class="layer-items">
+                            <span class="layer-item">PostgreSQL (Users/Sessions)</span>
+                            <span class="layer-item">Qdrant (Vector Memory)</span>
+                            <span class="layer-item">Redis (Cache/Queue)</span>
+                            <span class="layer-item">MinIO/S3 (Files/Media)</span>
+                            <span class="layer-item">Celery (Async Tasks)</span>
+                            <span class="layer-item">LLM Providers (GPT/Claude/Llama)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Smart Router Section -->
+    <section id="smart-router">
+        <div class="container">
+            <h2 class="section-title">Smart Model Router</h2>
+            <p class="section-subtitle">
+                Intelligent routing system that automatically selects the optimal AI model based on task requirements, cost constraints, and performance metrics.
+            </p>
+
+            <div class="content-block">
+                <h3>Selection Criteria</h3>
+                <ol>
+                    <li><strong>Content Type Analysis:</strong> Detect whether input is text, image, audio, file, or multimodal combination</li>
+                    <li><strong>Task Complexity Assessment:</strong> Evaluate if it's a simple query or requires deep reasoning</li>
+                    <li><strong>Latency Requirements:</strong> Determine need for real-time vs batch processing</li>
+                    <li><strong>Budget Optimization:</strong> Balance token costs against quality needs</li>
+                    <li><strong>Domain Specialization:</strong> Route to models optimized for code, math, creative, or analytical tasks</li>
+                    <li><strong>Fallback Strategy:</strong> Maintain backup models for reliability</li>
+                </ol>
+            </div>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Supported Models</h3>
+
+            <div class="content-block">
+                <h4>Text Models</h4>
+                <div class="model-grid">
+                    <div class="model-card">
+                        <div class="model-name">GPT-4o / GPT-4 Turbo</div>
+                        <div class="model-desc">Complex reasoning, analysis, nuanced understanding, best for general-purpose tasks</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Claude 3.5 Sonnet</div>
+                        <div class="model-desc">Extended context window (200K tokens), excellent coding, detailed analysis</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Llama 3.1 405B</div>
+                        <div class="model-desc">Open-source alternative, privacy-first deployment, competitive performance</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Gemini 1.5 Pro</div>
+                        <div class="model-desc">Massive context (1M+ tokens), multimodal native, long document processing</div>
+                    </div>
+                </div>
+
+                <h4>Vision Models</h4>
+                <div class="model-grid">
+                    <div class="model-card">
+                        <div class="model-name">GPT-4 Vision</div>
+                        <div class="model-desc">Image understanding, OCR, chart analysis, visual reasoning</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Claude 3.5 Sonnet Vision</div>
+                        <div class="model-desc">Detailed visual analysis, document parsing, screenshot interpretation</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">LLaVA</div>
+                        <div class="model-desc">Open-source vision-language model, local deployment option</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">DALL-E 3 / Stable Diffusion</div>
+                        <div class="model-desc">Image generation from text descriptions, creative visuals</div>
+                    </div>
+                </div>
+
+                <h4>Audio Models</h4>
+                <div class="model-grid">
+                    <div class="model-card">
+                        <div class="model-name">Whisper (OpenAI)</div>
+                        <div class="model-desc">Speech-to-text transcription, multilingual support, high accuracy</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">XTTS / Coqui TTS</div>
+                        <div class="model-desc">Text-to-speech synthesis, natural voice output, emotion control</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">WhisperX</div>
+                        <div class="model-desc">Speaker diarization, word-level timestamps, meeting transcription</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">python</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># services/smart_router.py
+from typing import Dict, Any, List
+from enum import Enum
+
+class TaskType(Enum):
+    TEXT_SIMPLE = "text_simple"
+    TEXT_COMPLEX = "text_complex"
+    CODE_GENERATION = "code_generation"
+    CODE_DEBUGGING = "code_debugging"
+    IMAGE_ANALYSIS = "image_analysis"
+    IMAGE_GENERATION = "image_generation"
+    AUDIO_TRANSCRIPTION = "audio_transcription"
+    FILE_PROCESSING = "file_processing"
+    MULTIMODAL = "multimodal"
+
+class SmartRouter:
+    def __init__(self, config: Dict[str, Any]):
+        self.models = config['models']
+        self.rules = config['routing_rules']
+        self.cost_tracker = CostTracker()
+        self.performance_monitor = PerformanceMonitor()
+    
+    async def route(self, message: UniversalMessage) -> RoutingDecision:
+        """Analyze message and select optimal model(s)"""
+        
+        # Step 1: Classify task type
+        task_type = await self._classify_task(message)
+        
+        # Step 2: Analyze complexity
+        complexity = self._analyze_complexity(message)
+        
+        # Step 3: Check constraints (budget, latency, etc.)
+        constraints = await self._get_constraints(message.user_id)
+        
+        # Step 4: Select candidates based on rules
+        candidates = self._get_candidates(task_type, complexity)
+        
+        # Step 5: Optimize for cost/performance
+        selected = self._optimize_selection(
+            candidates,
+            constraints,
+            self.performance_monitor.get_stats()
+        )
+        
+        return RoutingDecision(
+            primary_model=selected['primary'],
+            fallback_models=selected['fallbacks'],
+            pipeline=selected['pipeline'],
+            estimated_cost=selected['cost'],
+            estimated_latency=selected['latency']
+        )</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Memory System Section -->
+    <section id="memory-system">
+        <div class="container">
+            <h2 class="section-title">Memory System</h2>
+            <p class="section-subtitle">
+                Multi-level memory architecture that provides personalized, context-aware responses by learning from every interaction.
+            </p>
+
+            <div class="memory-hierarchy">
+                <div class="memory-level">
+                    <h4>Working Memory (Short-term)</h4>
+                    <ul>
+                        <li>Current session context (32K-128K tokens)</li>
+                        <li>Recent conversation history</li>
+                        <li>Active tools and their results</li>
+                        <li>User intent tracking</li>
+                    </ul>
+                </div>
+
+                <div class="memory-level">
+                    <h4>Short-Term Memory (Medium-term)</h4>
+                    <ul>
+                        <li>Automatic session summaries</li>
+                        <li>Last 7-30 days of activity</li>
+                        <li>Preference learning patterns</li>
+                        <li>Frequently used solutions</li>
+                    </ul>
+                </div>
+
+                <div class="memory-level">
+                    <h4>Long-Term Memory</h4>
+                    <ul>
+                        <li>Knowledge graph of user facts</li>
+                        <li>Semantic vector embeddings</li>
+                        <li>Personal documents index</li>
+                        <li>Reusable code snippets library</li>
+                        <li>Project context storage</li>
+                    </ul>
+                </div>
+
+                <div class="memory-level">
+                    <h4>Episodic Memory</h4>
+                    <ul>
+                        <li>Important conversations with tags</li>
+                        <li>Solved problems archive</li>
+                        <li>Learning milestones</li>
+                        <li>Decision records with rationale</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-block-wrapper" style="margin-top: 3rem;">
+                <div class="code-header">
+                    <span class="code-lang">python</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># services/memory_manager.py
+from qdrant_client import QdrantClient
+from datetime import datetime, timedelta
+import numpy as np
+
+class MemoryManager:
+    def __init__(self, vector_db: QdrantClient, pg_db):
+        self.vector_db = vector_db
+        self.pg_db = pg_db
+        self.embedder = EmbeddingModel('text-embedding-3-large')
+    
+    async def retrieve_context(
+        self,
+        query: str,
+        user_id: str,
+        max_tokens: int = 4000,
+        time_decay_days: int = 30
+    ) -> List[Memory]:
+        """Retrieve relevant memories with time-based decay"""
+        
+        # Generate query embedding
+        query_embedding = await self.embedder.embed(query)
+        
+        # Semantic search in vector database
+        results = self.vector_db.search(
+            collection='memories',
+            query_vector=query_embedding,
+            query_filter=Filter(must=[
+                FieldCondition(key='user_id', match=MatchValue(value=user_id))
+            ]),
+            limit=20,
+            score_threshold=0.7
+        )
+        
+        # Apply time decay and recency boost scoring
+        scored_results = []
+        for result in results:
+            created_at = datetime.fromisoformat(result.payload['created_at'])
+            days_old = (datetime.utcnow() - created_at).days
+            
+            # Exponential time decay factor
+            time_decay = np.exp(-days_old / time_decay_days)
+            
+            # Recency bonus for recently accessed memories
+            recency_boost = 1.5 if days_old < 7 else 1.0
+            
+            # Weighted final score
+            importance = result.payload.get('importance', 0.5)
+            final_score = (
+                result.score * 0.4 +      # Relevance
+                time_decay * 0.25 +       # Recency decay
+                importance * 0.2 +         # Importance weight
+                recency_boost * 0.15      # Access pattern bonus
+            )
+            scored_results.append((final_score, result))
+        
+        # Sort and apply token budget
+        scored_results.sort(key=lambda x: x[0], reverse=True)
+        
+        selected_memories = []
+        total_tokens = 0
+        
+        for score, result in scored_results:
+            memory_tokens = estimate_tokens(result.payload['content'])
+            if total_tokens + memory_tokens <= max_tokens:
+                selected_memories.append(Memory.from_payload(result.payload))
+                total_tokens += memory_tokens
+        
+        return selected_memories</code></pre>
+            </div>
+
+            <div class="content-block" style="margin-top: 2rem;">
+                <h3>Memory Operations</h3>
+                <ul>
+                    <li><strong>Auto-extraction:</strong> AI automatically extracts important information from conversations without manual input</li>
+                    <li><strong>Intelligent Summarization:</strong> Periodic compression of old dialogues to preserve context while managing storage</li>
+                    <li><strong>Forgetting Curve:</strong> Gradual decrease in memory weight to prioritize recent and relevant information</li>
+                    <li><strong>Privacy Controls:</strong> Full user control over what's stored, ability to delete specific memories or export all data</li>
+                    <li><strong>Cross-session Persistence:</strong> Memories persist across sessions and can be transferred between devices</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Multimodal Integration Section -->
+    <section id="multimodal-integration">
+        <div class="container">
+            <h2 class="section-title">Multimodal Integration</h2>
+            <p class="section-subtitle">
+                Unified message format enabling seamless combination of text, voice, images, and files in a single coherent context.
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">typescript</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>// types/message.ts
+interface UniversalMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: Date;
+  
+  content: {
+    text?: string;           // Text message
+    audio?: AudioBlock;      // Voice message
+    images?: ImageBlock[];   // Images
+    files?: FileBlock[];     // Files (PDF, code, data)
+    code?: CodeBlock;        // Executable code
+  };
+  
+  metadata: {
+    modality: ModalityType;  // text | audio | image | file | multi
+    language?: string;
+    confidence?: number;
+    processing_pipeline?: string[];
+  };
+  
+  context: {
+    session_id: string;
+    thread_id?: string;
+    parent_id?: string;      // For threading
+    memories_used?: string[];
+  };
+}
+
+type ModalityType = 'text' | 'audio' | 'image' | 'file' | 'multi';
+
+interface AudioBlock {
+  url: string;
+  duration: number;
+  waveform?: number[];
+  transcription?: string;
+}
+
+interface ImageBlock {
+  url: string;
+  caption?: string;
+  thumbnail?: string;
+  ocr_text?: string;
+}
+
+interface FileBlock {
+  url: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  extracted_content?: string;
+}</code></pre>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Cross-Modal Fusion Process</h3>
+                
+                <h4>When User Sends Combined Request:</h4>
+                <p><em>Example: Voice message + Screenshot + Code file → "Look at this error [image] and fix my code [file]"</em></p>
+                
+                <ol>
+                    <li><strong>Parallel Processing:</strong> Each modality module processes its input simultaneously (STT for audio, vision model for image, parser for file)</li>
+                    <li><strong>Temporal Alignment:</strong> Synchronize all processed inputs by timestamp and conversational context</li>
+                    <li><strong>Attention Fusion:</strong> Apply weighted attention mechanism to determine importance of each information source</li>
+                    <li><strong>Joint Representation:</strong> Create unified multimodal embedding capturing combined semantic meaning</li>
+                    <li><strong>Coherent Response Generation:</strong> Produce response that naturally integrates insights from all modalities</li>
+                </ol>
+
+                <h4 style="margin-top: 2rem;">Processing Pipelines</h4>
+                
+                <div class="feature-grid" style="margin-top: 1.5rem;">
+                    <div class="feature-card">
+                        <div class="feature-icon">📝</div>
+                        <h4 class="feature-title">Text Pipeline</h4>
+                        <p class="feature-description">Tokenization → Language Detection → Intent Classification → Entity Extraction → Context Enrichment → Response</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🎤</div>
+                        <h4 class="feature-title">Audio Pipeline</h4>
+                        <p class="feature-description">Noise Reduction → Speech-to-Text → Speaker Diarization → Timestamp Alignment → Text Pipeline → Optional TTS</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🖼️</div>
+                        <h4 class="feature-title">Image Pipeline</h4>
+                        <p class="feature-description">Pre-processing → Object Detection → OCR → Visual QA → Scene Understanding → Caption Generation</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📁</div>
+                        <h4 class="feature-title">File Pipeline</h4>
+                        <p class="feature-description">Format Detection → Parser Selection → Content Extraction → Structure Recognition → Chunking → Vectorization</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Backend Implementation Section -->
+    <section id="code-example-backend">
+        <div class="container">
+            <h2 class="section-title">Backend Implementation</h2>
+            <p class="section-subtitle">
+                Production-ready Python/FastAPI backend with comprehensive error handling, streaming support, and real-time communication.
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">python</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># main.py (FastAPI Application Entry Point)
+from fastapi import FastAPI, UploadFile, File, WebSocket, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from typing import Optional, List
+import uvicorn
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Universal AI Chat Platform",
+    version="1.0.0",
+    description="Multimodal AI assistant with smart routing and memory"
+)
+
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize Services
+router = SmartRouter(config.load())
+memory_manager = MemoryManager(vector_db, pg_db)
+multimodal_processor = MultiModalProcessor()
+llm_orchestrator = LLMOrchestrator()
+
+@app.post("/api/v1/chat")
+async def chat_endpoint(request: ChatRequest):
+    """
+    Main chat endpoint handling all modalities with streaming support
+    """
+    try:
+        # 1. Parse universal message from request
+        message = UniversalMessage.from_request(request)
+        logger.info(f"Received message: {message.id}, modality: {message.metadata.modality}")
+        
+        # 2. Retrieve relevant memories for context enrichment
+        context_memories = await memory_manager.retrieve_context(
+            query=message.get_text_content(),
+            user_id=request.user_id,
+            max_tokens=request.max_context_tokens or 4000
+        )
+        logger.info(f"Retrieved {len(context_memories)} relevant memories")
+        
+        # 3. Route to optimal model(s) using Smart Router
+        routing_decision = await router.route(message)
+        logger.info(f"Routed to model: {routing_decision.primary_model}")
+        
+        # 4. Process multimodal content in parallel
+        processed = await multimodal_processor.process_message(message)
+        
+        # 5. Build enriched prompt with memories and context
+        enriched_prompt = build_prompt(
+            user_message=processed.fused_context,
+            memories=context_memories,
+            system_prompt=get_system_prompt(routing_decision.task_type),
+            tools=get_available_tools(request.user_id)
+        )
+        
+        # 6. Generate streaming response using selected model
+        response_stream = await llm_orchestrator.generate_stream(
+            model=routing_decision.primary_model,
+            prompt=enriched_prompt,
+            temperature=request.temperature or 0.7,
+            max_tokens=request.max_tokens or 2000,
+            tools_enabled=request.tools_enabled or True
+        )
+        
+        # 7. Stream response back to client with metadata headers
+        return StreamingResponse(
+            response_stream,
+            media_type="text/event-stream",
+            headers={
+                "X-Model-Used": routing_decision.primary_model,
+                "X-Routing-Decision": routing_decision.json(),
+                "Access-Control-Expose-Headers": "X-Model-Used,X-Routing-Decision"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Chat endpoint error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.websocket("/ws/chat/{session_id}")
+async def websocket_chat(websocket: WebSocket, session_id: str):
+    """
+    WebSocket endpoint for real-time bidirectional communication
+    Supports streaming responses, generation interrupts, and live updates
+    """
+    await websocket.accept()
+    logger.info(f"WebSocket connected: {session_id}")
+    
+    session_manager = SessionManager(session_id)
+    
+    try:
+        while True:
+            # Receive message from client
+            data = await websocket.receive_json()
+            
+            if data['type'] == 'message':
+                # Process incoming message
+                message = UniversalMessage.from_dict(data['message'])
+                
+                # Stream response chunks back to client
+                async for chunk in process_and_respond(message, session_id):
+                    await websocket.send_json({
+                        'type': 'response_chunk',
+                        'chunk': chunk,
+                        'session_id': session_id,
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+                
+                # Signal completion
+                await websocket.send_json({'type': 'response_complete'})
+            
+            elif data['type'] == 'interrupt':
+                # Handle user request to stop generation
+                await session_manager.interrupt_generation()
+                await websocket.send_json({'type': 'interrupted', 'session_id': session_id})
+            
+            elif data['type'] == 'typing_indicator':
+                # Broadcast typing status to other participants
+                await session_manager.broadcast_typing(data['is_typing'])
+                
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected: {session_id}")
+        await session_manager.cleanup()
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Frontend Implementation Section -->
+    <section id="code-example-frontend">
+        <div class="container">
+            <h2 class="section-title">Frontend Implementation</h2>
+            <p class="section-subtitle">
+                Modern React + TypeScript frontend with real-time updates, intuitive UX, and comprehensive multimodal support.
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">tsx</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>// components/ChatInput.tsx
+import React, { useState, useRef, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
+import { useScreenshotCapture } from '../hooks/useScreenshotCapture';
+
+interface ChatInputProps {
+  onSend: (message: UniversalMessageType) => void;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+export const ChatInput: React.FC<ChatInputProps> = ({
+  onSend,
+  disabled = false,
+  placeholder = "Type a message..."
+}) => {
+  const [text, setText] = useState('');
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Voice recording hook with automatic transcription
+  const {
+    startRecording,
+    stopRecording,
+    isRecording: voiceActive,
+    audioBlob
+  } = useVoiceRecorder({
+    onComplete: (blob) => {
+      setAttachments(prev => [...prev, {
+        type: 'audio' as const,
+        blob,
+        url: URL.createObjectURL(blob),
+        name: `Voice ${new Date().toLocaleTimeString()}`
+      }]);
+    }
+  });
+
+  // File dropzone configuration for drag-and-drop upload
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      const newAttachments = acceptedFiles.map(file => ({
+        type: 'file' as const,
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        mimeType: file.type
+      }));
+      setAttachments(prev => [...prev, ...newAttachments]);
+    },
+    maxSize: 50 * 1024 * 1024, // 50MB limit
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a'],
+      'application/pdf': ['.pdf'],
+      'text/*': ['.txt', '.md', '.json', '.csv', '.py', '.js', '.ts'],
+      'application/zip': ['.zip']
+    }
+  });
+
+  // Screenshot capture for quick image attachment
+  const { captureScreen } = useScreenshotCapture();
+
+  const handleSend = useCallback(() => {
+    if (!text.trim() && attachments.length === 0) return;
+
+    // Construct unified message with all modalities
+    const message: UniversalMessageType = {
+      id: generateId(),
+      role: 'user',
+      timestamp: new Date(),
+      content: {
+        text: text.trim() || undefined,
+        audio: attachments.find(a => a.type === 'audio') ? {
+          url: attachments.find(a => a.type === 'audio')!.url,
+          duration: 0
+        } : undefined,
+        images: attachments
+          .filter(a => a.type === 'image' || a.file?.type.startsWith('image/'))
+          .map(a => ({ url: a.url })),
+        files: attachments
+          .filter(a => a.type === 'file' && !a.file?.type.startsWith('image/') && !a.file?.type.startsWith('audio/'))
+          .map(a => ({
+            url: a.url,
+            name: a.name!,
+            size: a.size!,
+            mimeType: a.mimeType!
+          }))
+      },
+      metadata: {
+        modality: getModalityType(text, attachments)
+      }
+    };
+
+    onSend(message);
+    setText('');
+    setAttachments([]);
+  }, [text, attachments, onSend]);
+
+  return (
+    <div className="chat-input-container" {...getRootProps()}>
+      <input {...getInputProps()} />
+      
+      {/* Drag overlay */}
+      {isDragActive && (
+        <div className="dropzone-overlay">
+          Drop files here to attach
+        </div>
+      )}
+
+      {/* Attachments preview */}
+      {attachments.length > 0 && (
+        <div className="attachments-preview">
+          {attachments.map((attachment, idx) => (
+            <AttachmentPreview
+              key={idx}
+              attachment={attachment}
+              onRemove={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Main input area with toolbars */}
+      <div className="input-wrapper">
+        {/* Left toolbar - Attachment options */}
+        <div className="input-toolbar-left">
+          <Tooltip title="Attach file">
+            <button className="toolbar-btn" onClick={() => document.querySelector('.dropzone-input')?.click()}>
+              📎
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="Take screenshot">
+            <button className="toolbar-btn" onClick={async () => {
+              const screenshot = await captureScreen();
+              if (screenshot) setAttachments(prev => [...prev, { type: 'image', ...screenshot }]);
+            }}>
+              📸
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="Record voice">
+            <button 
+              className={`toolbar-btn ${voiceActive ? 'recording' : ''}`}
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+            >
+              {voiceActive ? '⏹️' : '🎤'}
+            </button>
+          </Tooltip>
+        </div>
+
+        {/* Text input area */}
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+          placeholder={placeholder}
+          className="chat-textarea"
+          rows={1}
+          disabled={disabled}
+        />
+
+        {/* Right toolbar - Send and model selector */}
+        <div className="input-toolbar-right">
+          <ModelSelector />
+          
+          <button
+            className={`send-btn ${(text || attachments.length) ? 'active' : ''}`}
+            onClick={handleSend}
+            disabled={disabled || (!text && !attachments.length)}
+          >
+            ➤
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};</code></pre>
+            </div>
+
+            <div class="code-block-wrapper" style="margin-top: 2rem;">
+                <div class="code-header">
+                    <span class="code-lang">typescript</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>// store/chatStore.ts - Zustand State Management
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+
+interface ChatState {
+  sessions: Session[];
+  activeSessionId: string | null;
+  messages: Record<string, UniversalMessageType[]>;
+  isLoading: boolean;
+  isStreaming: boolean;
+  sidebarOpen: boolean;
+  
+  createSession: (title?: string) => string;
+  deleteSession: (id: string) => void;
+  setActiveSession: (id: string) => void;
+  addMessage: (sessionId: string, message: UniversalMessageType) => void;
+  updateMessage: (sessionId: string, updates: Partial<UniversalMessageType>) => void;
+  clearSession: (sessionId: string) => void;
+  toggleSidebar: () => void;
+}
+
+export const useChatStore = create<ChatState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        sessions: [],
+        activeSessionId: null,
+        messages: {},
+        isLoading: false,
+        isStreaming: false,
+        sidebarOpen: true,
+
+        createSession: (title?) => {
+          const id = generateId();
+          const session: Session = {
+            id,
+            title: title || `Chat ${new Date().toLocaleString()}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            messageCount: 0,
+            model: 'auto'
+          };
+
+          set(state => ({
+            sessions: [session, ...state.sessions],
+            activeSessionId: id,
+            messages: { ...state.messages, [id]: [] }
+          }));
+
+          return id;
+        },
+
+        addMessage: (sessionId, message) => {
+          set(state => ({
+            messages: {
+              ...state.messages,
+              sessionId: [...(state.messages[sessionId] || []), message]
+            },
+            sessions: state.sessions.map(s =>
+              s.id === sessionId
+                ? { ...s, updatedAt: new Date(), messageCount: s.messageCount + 1 }
+                : s
+            )
+          }));
+        },
+
+        toggleSidebar: () => {
+          set(state => ({ sidebarOpen: !state.sidebarOpen }));
+        }
+      }),
+      {
+        name: 'chat-storage',
+        partialize: (state) => ({
+          sessions: state.sessions,
+          activeSessionId: state.activeSessionId,
+          sidebarOpen: state.sidebarOpen
+        })
+      }
+    ),
+    { name: 'ChatStore' }
+  )
+);</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation">
+        <div class="container">
+            <h2 class="section-title">Installation & Setup</h2>
+            <p class="section-subtitle">
+                Get up and running quickly with Docker Compose or manual installation for custom deployments.
+            </p>
+
+            <div class="content-block">
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li><strong>Python 3.11+</strong> for backend services</li>
+                    <li><strong>Node.js 18+ (npm/yarn/pnpm)</strong> for frontend build</li>
+                    <li><strong>Docker & Docker Compose</strong> for containerized deployment</li>
+                    <li><strong>PostgreSQL 15+</strong> for structured data storage</li>
+                    <li><strong>Redis 7+</strong> for caching and queues</li>
+                    <li><strong>Qdrant Vector Database</strong> (or Pinecone/Weaviate alternative)</li>
+                    <li><strong>MinIO</strong> (or any S3-compatible storage) for file uploads</li>
+                    <li><strong>GPU</strong> optional, for running local LLMs via Ollama</li>
+                </ul>
+            </div>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Quick Start with Docker Compose</h3>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">bash</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># Clone the repository
+git clone https://github.com/your-org/universal-ai-chat.git
+cd universal-ai-chat
+
+# Copy environment templates
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Edit environment files with your API keys and configurations
+# nano .env
+
+# Start all services (backend, frontend, databases, vector store, storage)
+docker-compose up -d
+
+# Wait for services to become healthy
+docker-compose ps
+
+# Run database migrations
+docker-compose exec backend alembic upgrade head
+
+# Initialize vector collections for memory system
+docker-compose exec backend python scripts/init_vector_store.py
+
+# Application is now available at:
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# Interactive API docs: http://localhost:8000/docs</code></pre>
+            </div>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Manual Installation (Development)</h3>
+
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">bash</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># ===== BACKEND SETUP =====
+cd backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate     # Windows
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+export DATABASE_URL="postgresql://user:pass@localhost:5432/ai_chat"
+export REDIS_URL="redis://localhost:6379"
+export QDRANT_URL="http://localhost:6333"
+export OPENAI_API_KEY="sk-your-key-here"
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+
+# Run database migrations
+alembic upgrade head
+
+# Start development server with hot-reload
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+
+# ===== FRONTEND SETUP =====
+cd ../frontend
+
+# Install Node.js dependencies
+npm install
+# or: yarn install
+# or: pnpm install
+
+# Copy environment template
+cp .env.example .env
+# Configure backend URL
+# REACT_APP_API_URL=http://localhost:8000/api/v1
+# REACT_APP_WS_URL=ws://localhost:8000/ws
+
+# Start development server
+npm start
+# Opens at http://localhost:3000</code></pre>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Docker Compose Configuration</h3>
+                <p>The platform uses a containerized architecture with these core services:</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Technology</th>
+                            <th>Purpose</th>
+                            <th>Port</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Backend API</strong></td>
+                            <td>FastAPI (Python)</td>
+                            <td>Main application server</td>
+                            <td>8000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Frontend</strong></td>
+                            <td>React (Node.js)</td>
+                            <td>User interface</td>
+                            <td>3000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Database</strong></td>
+                            <td>PostgreSQL 15</td>
+                            <td>Structured data, users, sessions</td>
+                            <td>5432</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cache/Queue</strong></td>
+                            <td>Redis 7</td>
+                            <td>Caching, pub/sub, job queue</td>
+                            <td>6379</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vector Store</strong></td>
+                            <td>Qdrant</td>
+                            <td>Semantic memory embeddings</td>
+                            <td>6333</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Object Storage</strong></td>
+                            <td>MinIO</td>
+                            <td>File uploads, media assets</td>
+                            <td>9000/9001</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Documentation Section -->
+    <section id="api-documentation">
+        <div class="container">
+            <h2 class="section-title">API Documentation</h2>
+            <p class="section-subtitle">
+                Comprehensive RESTful API with WebSocket support for real-time communication, streaming responses, and full CRUD operations.
+            </p>
+
+            <div class="content-block">
+                <h3>Authentication</h3>
+                <p>All API requests require a Bearer token in the Authorization header:</p>
+                <div class="code-block-wrapper">
+                    <pre><code>Authorization: Bearer &lt;jwt_token&gt;</code></pre>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Core Endpoints</h3>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-path">/api/v1/chat</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Main chat endpoint handling all modalities with streaming SSE responses
+                </p>
+                <div class="api-details">
+                    <p><strong>Request Body:</strong></p>
+                    <div class="code-block-wrapper" style="margin-top: 0.75rem;">
+                        <pre><code>{
+  "session_id": "uuid-string",
+  "message": {
+    "role": "user",
+    "content": {
+      "text": "Explain this code",
+      "images": [{ "url": "https://.../screenshot.png" }],
+      "files": [{ "url": "https://.../code.py", "name": "main.py" }],
+      "audio": { "url": "https://.../voice.mp3", "duration": 12.5 }
+    },
+    "metadata": { "modality": "multimodal" }
+  },
+  "options": {
+    "temperature": 0.7,
+    "max_tokens": 2000,
+    "model": "auto",
+    "stream": true
+  }
+}</code></pre>
+                    </div>
+                    <p style="margin-top: 1rem;"><strong>Response (Server-Sent Events):</strong></p>
+                    <div class="code-block-wrapper" style="margin-top: 0.75rem;">
+                        <pre><code>data: {"type": "token", "content": "Here", "model": "gpt-4o"}
+data: {"type": "token", "content": " is", "model": "gpt-4o"}
+data: {"type": "done", "message_id": "uuid", "usage": {"tokens": 150}}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-path">/api/v1/sessions/{session_id}/messages</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Retrieve chat history with pagination support
+                </p>
+                <div class="api-details">
+                    <p><strong>Query Parameters:</strong> <code>limit</code>, <code>offset</code>, <code>order</code></p>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-path">/api/v1/files/upload</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Upload files for processing (PDF, images, code, documents)
+                </p>
+                <div class="api-details">
+                    <p><strong>Form Data:</strong> <code>file</code> (multipart, max 50MB), <code>session_id</code> (optional)</p>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-path">/api/v1/memories</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Retrieve user's stored memories with search and filtering
+                </p>
+                <div class="api-details">
+                    <p><strong>Query Parameters:</strong> <code>limit</code>, <code>type</code> (preference|fact|decision|solution|pattern|all), <code>search</code> (semantic query)</p>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-path">/api/v1/audio/transcribe</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Transcribe audio files to text with speaker detection
+                </p>
+                <div class="api-details">
+                    <p><strong>Form Data:</strong> <code>audio</code> file, <code>language</code> (auto-detect), <code>diarize</code> (boolean)</p>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-path">/api/v1/audio/tts</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Convert text to speech with natural voice synthesis
+                </p>
+                <div class="api-details">
+                    <p><strong>Request Body:</strong> <code>{"text": "...", "voice": "alloy", "speed": 1.0}</code></p>
+                    <p><strong>Response:</strong> Binary audio stream (<code>audio/mpeg</code>)</p>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-path">/api/v1/images/analyze</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Analyze images with computer vision and extract information
+                </p>
+                <div class="api-details">
+                    <p><strong>Request Body:</strong> <code>{"image_url": "...", "prompt": "Describe this...", "detail": "high"}</code></p>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>WebSocket Communication</h3>
+                <p>Connect to real-time endpoint for bidirectional streaming:</p>
+                <div class="code-block-wrapper">
+                    <pre><code>ws://your-host/ws/chat/{session_id}?token={jwt_token}</code></pre>
+                </div>
+
+                <h4 style="margin-top: 1.5rem;">Client → Server Events:</h4>
+                <div class="code-block-wrapper">
+                    <pre><code>{ "type": "message", "message": { ... } }
+{ "type": "interrupt" }</code></pre>
+                </div>
+
+                <h4 style="margin-top: 1.5rem;">Server → Client Events:</h4>
+                <div class="code-block-wrapper">
+                    <pre><code>{ "type": "response_chunk", "chunk": "partial text..." }
+{ "type": "response_complete", "message": { ... } }
+{ "type": "error", "error": "Error description" }</code></pre>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 2rem;">
+                <h3>Error Codes Reference</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>400</td><td>BAD_REQUEST</td><td>Invalid request format or validation error</td></tr>
+                        <tr><td>401</td><td>UNAUTHORIZED</td><td>Missing or invalid authentication token</td></tr>
+                        <tr><td>403</td><td>FORBIDDEN</td><td>Insufficient permissions for action</td></tr>
+                        <tr><td>404</td><td>NOT_FOUND</td><td>Requested resource does not exist</td></tr>
+                        <tr><td>429</td><td>RATE_LIMITED</td><td>Too many requests, please retry later</td></tr>
+                        <tr><td>500</td><td>INTERNAL_ERROR</td><td>Unexpected server error</td></tr>
+                        <tr><td>503</td><td>SERVICE_UNAVAILABLE</td><td>AI model temporarily unavailable</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features & Demos Section -->
+    <section id="features-demo">
+        <div class="container">
+            <h2 class="section-title">Features & Demos</h2>
+            <p class="section-subtitle">
+                Real-world use cases demonstrating the power of multimodal AI integration across different domains.
+            </p>
+
+            <div class="content-block">
+                <h3>Use Case 1: Development & Debugging</h3>
+                <p><strong>Scenario:</strong> Developer encounters an error in production code</p>
+                
+                <h4>Interaction Flow:</h4>
+                <ol>
+                    <li><strong>Voice Input:</strong> Developer says "Look at this screenshot, I have an error here"</li>
+                    <li><strong>Attachments:</strong> IDE screenshot showing error highlight + source code file</li>
+                    <li><strong>Processing:</strong> AI recognizes speech, analyzes image, reads and parses code</li>
+                    <li><strong>Response Package:</strong>
+                        <ul>
+                            <li>Text explanation of root cause</li>
+                            <li>Fixed code snippet with inline comments</li>
+                            <li>Voice explanation (TTS) for accessibility</li>
+                            <li>Warnings about potential edge cases</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <div class="code-block-wrapper" style="margin-top: 1.5rem;">
+                    <div class="code-header">
+                        <span class="code-lang">python</span>
+                        <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: auto;">Example Output</span>
+                    </div>
+                    <pre><code># ❌ Original code (with bug)
+def calculate_average(numbers):
+    total = 0
+    for num in numbers:
+        total += num
+    return total / len(numbers)  # ZeroDivisionError if empty!
+
+# ✅ Fixed code (AI-generated solution)
+def calculate_average(numbers: list[float]) -> float:
+    """
+    Calculate arithmetic mean safely with validation.
+    
+    Args:
+        numbers: List of numeric values
+        
+    Returns:
+        Average value, or 0.0 if list is empty
+        
+    Raises:
+        TypeError: If non-numeric values present
+    """
+    if not numbers:
+        return 0.0
+    
+    if not all(isinstance(n, (int, float)) for n in numbers):
+        raise TypeError("All elements must be numeric")
+    
+    return sum(numbers) / len(numbers)</code></pre>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Use Case 2: Document & Data Analysis</h3>
+                <p><strong>Scenario:</strong> Business analyst needs comparative report from multiple sources</p>
+                
+                <h4>Query Example:</h4>
+                <p><em>"Compare Q3 and Q4 revenue from this Excel spreadsheet, consider the trends mentioned in the PDF annual report, and create a summary table with visualizations"</em></p>
+
+                <h4>Processing Pipeline:</h4>
+                <ol>
+                    <li>Parse PDF report (extract text + tables with structure recognition)</li>
+                    <li>Read Excel file (structured data with type inference)</li>
+                    <li>Perform cross-source comparative analysis</li>
+                    <li>Generate markdown summary table with calculated metrics</li>
+                    <li>Create visualization recommendations (Mermaid charts, Plotly graphs)</li>
+                    <li>Provide actionable insights and trend predictions</li>
+                </ol>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Use Case 3: Creative Multimodal Content</h3>
+                <p><strong>Scenario:</strong> Marketing team creates campaign materials</p>
+                
+                <h4>Multimodal Request:</h4>
+                <p><em>"Create promotional copy for our new product launch using these product photos [images], follow the brand guidelines from this PDF brand book [file], make the tone energetic and appealing to Gen Z audience [voice instruction]"</em></p>
+
+                <h4>Deliverables Generated:</h4>
+                <ul>
+                    <li>Multiple copy variants (A/B testing ready)</li>
+                    <li>Visual design recommendations (color palette, layout suggestions)</li>
+                    <li>Brand compliance checklist</li>
+                    <li>Voice-over script for video ads</li>
+                    <li>Social media post variations per platform</li>
+                </ul>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Use Case 4: Learning & Mentorship</h3>
+                <p><strong>Scenario:</strong> Junior developer learning React Hooks with interactive guidance</p>
+
+                <div class="code-block-wrapper">
+                    <div class="code-header">
+                        <span class="code-lang">text</span>
+                        <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: auto;">Sample Dialogue</span>
+                    </div>
+                    <pre><code>User: [Voice] I'm trying to understand React Hooks but confused about useEffect
+
+AI: Let's break it down step by step! [Attaches interactive lifecycle diagram]
+    First, let's understand when you actually need useEffect...
+    
+User: [Text] Why is there an empty dependency array in this example?
+
+AI: Great question! [Renders animated diagram] The empty array [] means
+    the effect runs only once when the component mounts—similar to 
+    componentDidMount in class components. Here's why this matters...
+    
+    [Provides voice explanation with practical examples]
+
+User: [Screenshot of personal code] Is my usage correct here?
+
+AI: [Analyzes code in detail] You're very close! Here are 3 improvements:
+    1. Add cleanup function to prevent memory leaks
+    2. Move the dependency calculation outside the effect
+    3. Consider using useCallback for the handler function
+    
+    [Shows side-by-side diff with explanations]
+    
+    [Auto-saves to memory: User is learning React, prefers visual examples,
+     works on e-commerce project, beginner-intermediate level]</code></pre>
+                </div>
+            </div>
+
+            <div class="feature-grid" style="margin-top: 4rem;">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h4 class="feature-title">Smart Router Visualization</h4>
+                    <p class="feature-description">Real-time dashboard showing request analysis, model selection logic, cost tracking, and performance metrics</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h4 class="feature-title">Memory Explorer</h4>
+                    <p class="feature-description">Interactive graph visualization of stored memories with nodes, connections, search, filtering, and timeline views</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔀</div>
+                    <h4 class="feature-title">Multimodal Fusion Monitor</h4>
+                    <p class="feature-description">Live visualization of parallel processing streams, fusion mechanism operation, and unified context construction</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap Section -->
+    <section id="roadmap">
+        <div class="container">
+            <h2 class="section-title">Roadmap & Future Features</h2>
+            <p class="section-subtitle">
+                Our development roadmap showcasing completed milestones, current progress, and exciting future capabilities.
+            </p>
+
+            <div class="roadmap-timeline">
+                <div class="roadmap-phase">
+                    <div class="phase-marker"></div>
+                    <div class="phase-header">
+                        <h3 class="phase-title">Phase 1: Foundation</h3>
+                        <span class="phase-status status-complete">✓ Complete</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.95rem;">Q1 2024</span>
+                    <ul class="phase-features">
+                        <li>Basic text chat with streaming responses</li>
+                        <li>Major LLM integrations (GPT-4, Claude, Llama)</li>
+                        <li>File upload and processing (PDF, code, text)</li>
+                        <li>Basic memory system with vector storage</li>
+                        <li>Authentication and user management</li>
+                        <li>Docker deployment with docker-compose</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-phase">
+                    <div class="phase-marker"></div>
+                    <div class="phase-header">
+                        <h3 class="phase-title">Phase 2: Multimodal Expansion</h3>
+                        <span class="phase-status status-progress">In Progress</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.95rem;">Q2 2024</span>
+                    <ul class="phase-features">
+                        <li>Voice input via speech-to-text (Whisper)</li>
+                        <li>Voice output via text-to-speech (XTTS)</li>
+                        <li>Image analysis with vision models (GPT-4V, Claude)</li>
+                        <li>Smart Model Router with automatic selection</li>
+                        <li>Image generation (DALL-E 3, Stable Diffusion)</li>
+                        <li>Video analysis capabilities</li>
+                        <li>Screenshot capture and screen sharing</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-phase">
+                    <div class="phase-marker"></div>
+                    <div class="phase-header">
+                        <h3 class="phase-title">Phase 3: Intelligence</h3>
+                        <span class="phase-status status-planned">Planned</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.95rem;">Q3 2024</span>
+                    <ul class="phase-features">
+                        <li>Advanced RAG with hybrid search (semantic + keyword)</li>
+                        <li>Knowledge graph construction and querying</li>
+                        <li>Personalized model fine-tuning per user</li>
+                        <li>Multi-agent collaboration system</li>
+                        <li>Sandboxed code execution environment</li>
+                        <li>Web browsing and research capabilities</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-phase">
+                    <div class="phase-marker"></div>
+                    <div class="phase-header">
+                        <h3 class="phase-title">Phase 4: Enterprise</h3>
+                        <span class="phase-status status-planned">Planned</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.95rem;">Q4 2024</span>
+                    <ul class="phase-features">
+                        <li>SSO/SAML enterprise authentication</li>
+                        <li>Audit logging and compliance features</li>
+                        <li>Team collaboration and shared workspaces</li>
+                        <li>Custom model hosting and management</li>
+                        <li>Advanced analytics dashboard</li>
+                        <li>SLA guarantees and enterprise support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 4rem;">
+                <h3>Future Vision (2025+)</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h4 class="feature-title">Autonomous Agents</h4>
+                        <p class="feature-description">Self-sufficient AI agents capable of executing complex multi-step tasks independently</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h4 class="feature-title">Real-time Collaboration</h4>
+                        <p class="feature-description">Multi-user collaborative sessions with shared AI context and synchronized editing</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🥽</div>
+                        <h4 class="feature-title">AR/VR Interface</h4>
+                        <p class="feature-description">Spatial computing interface for immersive 3D content interaction and visualization</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">💭</div>
+                        <h4 class="feature-title">Emotional Intelligence</h4>
+                        <p class="feature-description">Emotion recognition and adaptive response generation based on user emotional state</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h4 class="feature-title">Cross-platform Memory</h4>
+                        <p class="feature-description">Seamless memory synchronization across all devices and platforms</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h4 class="feature-title">Edge Deployment</h4>
+                        <p class="feature-description">Local-first operation on device with offline capability and privacy preservation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Community-Requested Features</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Community Votes</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Plugin System</td>
+                            <td>342 ⬆️</td>
+                            <td><span class="phase-status status-planned">Planned</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mobile App (iOS/Android)</td>
+                            <td>298 ⬆️</td>
+                            <td><span class="phase-status status-progress">Researching</span></td>
+                        </tr>
+                        <tr>
+                            <td>Whiteboard/Canvas Mode</td>
+                            <td>256 ⬆️</td>
+                            <td><span class="phase-status status-progress">In Design</span></td>
+                        </tr>
+                        <tr>
+                            <td>Git Integration</td>
+                            <td>234 ⬆️</td>
+                            <td><span class="phase-status status-progress">Development</span></td>
+                        </tr>
+                        <tr>
+                            <td>Database Connector</td>
+                            <td>198 ⬆️</td>
+                            <td><span class="phase-status status-planned">Backlog</span></td>
+                        </tr>
+                        <tr>
+                            <td>Calendar/Scheduling</td>
+                            <td>176 ⬆️</td>
+                            <td><span class="phase-status status-planned">Planned</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contributing Section -->
+    <section id="contributing">
+        <div class="container">
+            <h2 class="section-title">Contributing & Community</h2>
+            <p class="section-subtitle">
+                Join our open-source community and help shape the future of multimodal AI assistants. All contributions are welcome!
+            </p>
+
+            <div class="content-block">
+                <h3>Development Workflow</h3>
+                <div class="code-block-wrapper">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code># 1. Fork the repository
+git clone https://github.com/YOUR_USERNAME/universal-ai-chat.git
+cd universal-ai-chat
+
+# 2. Create feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Install dependencies
+# Backend
+cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+
+# Frontend
+cd ../frontend && npm install
+
+# 4. Run tests
+pytest tests/
+npm test
+
+# 5. Make changes following code style
+# Python: Black, isort, mypy, flake8
+# TypeScript: ESLint, Prettier
+
+# 6. Commit with conventional commits
+git commit -m "feat: add amazing feature"
+
+# 7. Push and create Pull Request
+git push origin feature/amazing-feature
+open https://github.com/your-org/universal-ai-chat/pull/new</code></pre>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Project Structure</h3>
+                <div class="code-block-wrapper">
+                    <div class="code-header">
+                        <span class="code-lang">text</span>
+                    </div>
+                    <pre><code>universal-ai-chat/
+├── backend/
+│   ├── app/
+│   │   ├── api/v1/endpoints/    # REST API endpoints
+│   │   ├── core/                 # Business logic layer
+│   │   │   ├── router.py         # Smart model router
+│   │   │   ├── memory.py         # Memory manager service
+│   │   │   └── multimodal.py     # Multimodal processor
+│   │   ├── models/               # Database ORM models
+│   │   ├── services/             # External service integrations
+│   │   │   ├── llm/              # LLM provider adapters
+│   │   │   ├── storage/          # File storage handlers
+│   │   │   └── vector_db/        # Vector database client
+│   │   └── main.py               # FastAPI application entry
+│   ├── tests/                    # Test suites
+│   ├── alembic/                  # Database migrations
+│   └── requirements.txt          # Python dependencies
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/           # React UI components
+│   │   │   ├── chat/             # Chat-specific components
+│   │   │   ├── common/           # Shared/reusable components
+│   │   │   └── media/            # Media player/viewer components
+│   │   ├── hooks/                # Custom React hooks
+│   │   ├── store/                # Zustand state stores
+│   │   ├── services/             # API client services
+│   │   ├── types/                # TypeScript type definitions
+│   │   └── utils/                # Utility functions
+│   └── package.json              # Node.js dependencies
+│
+├── docker-compose.yml            # Container orchestration
+├── .github/workflows/            # CI/CD pipeline configs
+├── docs/                         # Documentation
+│   ├── api/                      # API reference docs
+│   ├── architecture/             # System design docs
+│   └── guides/                   # User guides & tutorials
+├── .env.example                  # Environment template
+├── README.md                     # Project overview
+├── CONTRIBUTING.md               # Contribution guidelines
+└── LICENSE                       # MIT License</code></pre>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem;">
+                <h3>Code Quality Standards</h3>
+                
+                <h4>Python (Backend):</h4>
+                <div class="code-block-wrapper">
+                    <pre><code># Format code with Black
+black .
+
+# Sort imports with isort
+isort .
+
+# Type checking with strict mode
+mypy --strict app/
+
+# Linting with flake8
+flake8 app/
+
+# Run tests with coverage reporting
+pytest --cov=app tests/ --cov-report=html</code></pre>
+                </div>
+
+                <h4>TypeScript (Frontend):</h4>
+                <div class="code-block-wrapper">
+                    <pre><code># Lint TypeScript/TSX files
+eslint src/ --ext .ts,.tsx
+
+# Format with Prettier
+prettier --write "src/**/*.{ts,tsx,css}"
+
+# Strict type checking
+tsc --noEmit
+
+# Run unit tests with coverage
+npm test -- --coverage --watchAll=false</code></pre>
+                </div>
+            </div>
+
+            <div class="feature-grid" style="margin-top: 3rem;">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h4 class="feature-title">Discord Community</h4>
+                    <p class="feature-description">Join 2,500+ developers discussing features, sharing projects, and getting help</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📖</div>
+                    <h4 class="feature-title">Documentation</h4>
+                    <p class="feature-description">Comprehensive guides, API references, tutorials, and architecture documentation</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🐛</div>
+                    <h4 class="feature-title">Issue Tracker</h4>
+                    <p class="feature-description">Report bugs, request features, track progress, and discuss improvements</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📰</div>
+                    <h4 class="feature-title">Blog & Updates</h4>
+                    <p class="feature-description">Latest news, release notes, technical deep-dives, and community spotlights</p>
+                </div>
+            </div>
+
+            <div class="content-block" style="margin-top: 3rem; text-align: center;">
+                <h3>License</h3>
+                <p>This project is licensed under the <strong>MIT License</strong> — free for both personal and commercial use.</p>
+                <p style="margin-top: 1rem;">See the <code>LICENSE</code> file for full details.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Documentation</a>
+                <a href="#" class="footer-link">GitHub Repository</a>
+                <a href="#" class="footer-link">Discord Community</a>
+                <a href="#" class="footer-link">Twitter/X</a>
+                <a href="#" class="footer-link">Blog</a>
+                <a href="#" class="footer-link">Status Page</a>
+            </div>
+            <p style="margin-bottom: 0.5rem;">
+                Built with ❤️ by the AI Engineering Team • Open Source under MIT License
+            </p>
+            <p style="font-size: 0.9rem; opacity: 0.7;">
+                © 2024 Universal AI Chat Platform. Empowering developers with intelligent multimodal AI.
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Interactivity -->
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block-wrapper').querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = 'var(--success-color)';
+                button.style.color = 'white';
+                button.style.borderColor = 'var(--success-color)';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.style.borderColor = '';
+                }, 2000);
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe sections for animation
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(section);
+        });
+
+        // Make hero section visible immediately
+        document.querySelector('.hero-section').style.opacity = '1';
+        document.querySelector('.hero-section').style.transform = 'translateY(0)';
+    </script>
+
+</body>
+</html>

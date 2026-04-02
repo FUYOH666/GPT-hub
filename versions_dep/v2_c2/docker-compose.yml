@@ -1,0 +1,97 @@
+# GPTHub v2_c2 — Open WebUI + LiteLLM Proxy (см. README.md, ROADMAP.md)
+# LiteLLM: pin по digest. Open WebUI: https://github.com/open-webui/open-webui/releases
+# RAG: embedding/rerank на хосте (BGE) — host.docker.internal (Mac/Win; Linux: extra_hosts host-gateway).
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm@sha256:9e1536c6a9219519f024f221706b20b012ca5176988164798adc5c7fe011e5d5
+    container_name: gpthub-litellm
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENROUTER_API_BASE: ${OPENROUTER_API_BASE:-https://openrouter.ai/api/v1}
+      OR_SITE_URL: ${OR_SITE_URL:-http://localhost:3000}
+      OR_APP_NAME: ${OR_APP_NAME:-GPTHub}
+      MWS_GPT_API_BASE: ${MWS_GPT_API_BASE}
+      MWS_GPT_API_KEY: ${MWS_GPT_API_KEY}
+      # Instruct LLM (OpenAI-compatible /v1), скилл remote-llm-service — порт 8002 на GPU-хосте
+      LLM_INSTRUCT_API_BASE: ${LLM_INSTRUCT_API_BASE:-}
+      LLM_INSTRUCT_API_KEY: ${LLM_INSTRUCT_API_KEY:-local-instruct}
+    command:
+      - "--config"
+      - "/app/config.yaml"
+      - "--port"
+      - "4000"
+    networks:
+      - gpthub-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    container_name: gpthub-open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+      WEBUI_URL: ${WEBUI_URL:-http://localhost:3000}
+      # Безопасность UI: см. .env.example и https://docs.openwebui.com/reference/env-configuration
+      ENABLE_SIGNUP: ${ENABLE_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-pending}
+      ENABLE_PERSISTENT_CONFIG: ${ENABLE_PERSISTENT_CONFIG:-true}
+      ENABLE_PASSWORD_VALIDATION: ${ENABLE_PASSWORD_VALIDATION:-false}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
+      WEBUI_ADMIN_NAME: ${WEBUI_ADMIN_NAME:-Admin}
+      OPENAI_API_BASE_URL: http://litellm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      # Фоновые задачи (заголовки чатов и т.д.) через тот же LiteLLM
+      TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub-strong}
+      # Долгосрочная память (Memories) — см. https://github.com/open-webui/docs/blob/main/docs/reference/env-configuration.mdx
+      ENABLE_MEMORIES: ${ENABLE_MEMORIES:-true}
+      # RAG: OpenAI-совместимые embeddings на хосте (скилл remote-embedding-service: /v1/embeddings)
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE:-openai}
+      RAG_OPENAI_API_BASE_URL: ${RAG_OPENAI_API_BASE_URL:-http://host.docker.internal:9001/v1}
+      RAG_OPENAI_API_KEY: ${RAG_OPENAI_API_KEY:-local-embedding}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-BAAI/bge-m3}
+      # Rerank: полный URL до endpoint (документация Open WebUI требует path целиком)
+      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE:-external}
+      RAG_EXTERNAL_RERANKER_URL: ${RAG_EXTERNAL_RERANKER_URL:-http://host.docker.internal:9002/v1/rerank}
+      RAG_EXTERNAL_RERANKER_API_KEY: ${RAG_EXTERNAL_RERANKER_API_KEY:-}
+      # STT: OpenAI-compatible ASR (POST /v1/audio/transcriptions), не LiteLLM — иначе унаследует OPENAI_API_BASE_URL
+      AUDIO_STT_ENGINE: ${AUDIO_STT_ENGINE:-openai}
+      AUDIO_STT_OPENAI_API_BASE_URL: ${AUDIO_STT_OPENAI_API_BASE_URL:-http://host.docker.internal:8001/v1}
+      AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
+      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
+      # Те же типы, что по умолчанию в Open WebUI при пустом списке (strict_match_mime_type → audio/*, video/webm)
+      AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
+    depends_on:
+      litellm:
+        condition: service_healthy
+    networks:
+      - gpthub-net
+
+networks:
+  gpthub-net:
+    driver: bridge
+
+volumes:
+  open-webui-data:

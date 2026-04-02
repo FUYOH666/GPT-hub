@@ -1,0 +1,58 @@
+# GPTHub Workspace — `versions_dep/v3`
+
+**Open WebUI (UI)** + **GPTHub Orchestrator (FastAPI)** + **LiteLLM (gateway к моделям)**.
+
+Отличие от [v2_c2](../v2_c2): вся продуктовая логика (маршрутизация, будущий perception, память, trace) живёт **в оркестраторе**, а не в настройках WebUI/LiteLLM.
+
+- Архитектура и рецепт: [ARCHITECTURE.md](ARCHITECTURE.md)
+- **План реализации по фазам (задачи, тесты, приёмка):** [ROADMAP.md](ROADMAP.md)
+- **Handoff / новый чат:** [CONTINUATION.md](CONTINUATION.md) — остановка v2, Docker, промпт для агента
+- **Публичный HTTPS (канон):** [../../docs/TEAM_PUBLIC_ACCESS.md](../../docs/TEAM_PUBLIC_ACCESS.md) — деплой WebUI; лендинг/редирект — репо сайта
+
+## Быстрый старт
+
+```bash
+cd versions_dep/v3
+cp .env.example .env
+# Заполните LITELLM_MASTER_KEY, OPENROUTER_API_KEY (как в v2_c2)
+docker compose up -d --build
+```
+
+- Open WebUI: http://localhost:3000  
+- LiteLLM: http://localhost:4000  
+- Orchestrator: http://localhost:8089/healthz  
+
+**Конфликт портов:** v3 и [v2_c2](../v2_c2) оба используют **3000** и **4000** — остановите другой стек перед запуском.
+
+В compose WebUI направлен на **orchestrator** (`OPENAI_API_BASE_URL`). Оркестратор проксирует **`GET /v1/models`** и **`POST /v1/chat/completions`** в LiteLLM — без `/v1/models` селектор в UI остаётся пустым («Выберите модель»). Закрепление и дефолт: `DEFAULT_MODELS`, `DEFAULT_PINNED_MODELS` в compose / `.env`.
+
+**PDF / вложения в чат (RAG):** сервис **`embedding-shim`** проксирует `POST /v1/embeddings` на BGE на хосте (`BGE_EMBEDDING_UPSTREAM`, по умолчанию `host.docker.internal:9001`) и копирует **`dense_embedding` → `embedding`**, иначе Open WebUI падает с `KeyError: 'embedding'` и оранжевый статус «embedding» не завершается. Нужен запущенный BGE на Mac; без него RAG не заработает.
+
+**Если источник найден, но красная ошибка про `TransferEncodingError` / обрыв stream:** часто это **HTTP 400 от LiteLLM до начала SSE** (раньше — ложный `detect_prompt_injection` на текст из PDF; в `v2_c2/litellm/config.yaml` guardrail отключён) или **таймаут** — поднимите **`LITELLM_TIMEOUT_SECONDS`** (compose / `.env`, по умолчанию 600). Оркестратор при 4xx в stream отдаёт SSE `error` + `[DONE]` вместо обрыва тела.
+
+**Роли и OpenRouter free:** цепочки LiteLLM-алиасов задаются в [apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml](apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml); сами модели — в [v2_c2/litellm/config.yaml](../v2_c2/litellm/config.yaml) (`gpt-hub-fast`, `gpt-hub-doc`, `gpt-hub-reasoning-or`, `gpt-hub-fallback`, …).
+
+**Автовыбор модели (по умолчанию включён):** `AUTO_ROUTE_MODEL=true` в compose и в коде — оркестратор подменяет `model` по classifier + роли (`fast_text`, `doc_synthesis`, `vision_general`, `reasoning_code_*`). Чтобы снова использовать только выбор модели из UI, задайте `AUTO_ROUTE_MODEL=false`. `CODE_ROUTE_PREFERENCE=local|openrouter` — для кода первым идёт свой `:8002` или только OpenRouter free.
+
+**Fallback (non-stream):** при включённом автовыборе и `ORCHESTRATOR_LITELLM_FALLBACK=true` при **429/503** перебирается цепочка алиасов; в `X-GPTHub-Trace` — `orchestrator_fallback`. Stream: одна попытка, дублирующие fallbacks на стороне LiteLLM.
+
+**Список free-моделей OpenRouter (курация):** из `apps/orchestrator` выполните `export OPENROUTER_API_KEY=...` и `uv run python -m gpthub_orchestrator.tools.list_free_models` (опции `--vision-only`, `--json`, `--no-auth`).
+
+## Локальная разработка orchestrator
+
+```bash
+cd apps/orchestrator
+uv sync
+export LITELLM_BASE_URL=http://127.0.0.1:4000
+export ORCHESTRATOR_API_KEY=your-master-key-same-as-litellm
+# optional: export AUTO_ROUTE_MODEL=false  # только если нужен выбор модели только из UI
+uv run uvicorn gpthub_orchestrator.main:app --reload --port 8089
+```
+
+## Trace
+
+Trace пишется в **логи** orchestrator и в заголовке `X-GPTHub-Trace` (base64 JSON): `model_role`, `fallback_aliases`, `orchestrator_fallback` (попытки / `model_selected` / `retries_after_failure`). Open WebUI заголовок не показывает — см. ROADMAP фаза 4.
+
+## Переменные
+
+См. [.env.example](.env.example).
