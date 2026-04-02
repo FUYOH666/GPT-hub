@@ -60,3 +60,11 @@ def test_router_fast_text():
     out = choose_model({"modalities": ["text"], "task_type": "simple_chat"}, s)
     assert out["model_role"] == "fast_text"
     assert out["model_name"] == "gpt-hub-fast"
+
+
+def test_router_greeting_or_tiny():
+    s = _settings()
+    out = choose_model({"modalities": ["text"], "task_type": "greeting_or_tiny"}, s)
+    assert out["model_role"] == "fast_text_chat"
+    assert out["model_name"] == "gpt-hub-fast"
+    assert "gpt-hub-strong" not in out["fallback_aliases"]

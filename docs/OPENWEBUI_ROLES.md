@@ -17,8 +17,20 @@
 | `WEB_SEARCH_ENGINE` | Например `tavily` — см. официальную доку Open WebUI |
 | `TAVILY_API_KEY` | Ключ Tavily; только в локальном `.env`, не в git |
 | `BYPASS_MODEL_ACCESS_CONTROL` | `true` — все пользователи видят все модели из API (рекомендуется для команды); `false` — только RBAC/группы |
+| `DEFAULT_MODELS` | В v3 compose по умолчанию **`gpt-hub-fast`** — легче и меньше «рассуждений» в теле ответа; `gpt-hub-strong` остаётся в закреплённых |
+| `TASK_MODEL_EXTERNAL` | По умолчанию **`gpt-hub-fast`** — вспомогательные задачи UI не тянут тяжёлый алиас без нужды |
 
 После правок: `docker compose up -d --force-recreate open-webui` (из каталога `versions_dep/v3`).
+
+## Reasoning / «Рассуждение заняло N сек»
+
+Модели вроде **Qwen 3.x** (в стеке — алиас **`gpt-hub-strong`**) могут выдавать цепочку размышлений **в обычном тексте** (`Here's a thinking process: …`) или в **тегах** (`<think>…`). Open WebUI умеет выносить во вложенный блок только то, что распознано как reasoning по настройкам.
+
+1. Официально: [Reasoning & Thinking Models](https://docs.openwebui.com/features/chat-conversations/chat-features/reasoning-models/) — **Chat Controls → Advanced Parameters** или **Workspace / Admin → Models → Advanced Parameters**: режим **Reasoning Tags** (`Default` / `Enabled` / **`Disabled`** / `Custom`). Если модель шлёт нестандартные теги — задайте **Custom** или отключите детектор, если весь ответ сливается в одно поле.
+2. **Стриминг** (`stream: true`, по умолчанию в чате) обычно лучше отделяет блоки; при **non-stream** сырой текст чаще попадает в ответ целиком.
+3. В **GPTHub v3** при **`AUTO_ROUTE_MODEL=true`** приветствия и короткие реплики идут в роль **`fast_text_chat`** с цепочкой **`gpt-hub-fast` → `gpt-hub-fallback`** (без `gpt-hub-strong`), плюс в промптах запрещён вывод «thinking process» в ответ пользователю. Если автроут выключен (**`AUTO_ROUTE_MODEL=false`**) и в UI выбран **strong**, поведение модели снова полностью определяется этим алиасом.
+
+Trace маршрутизации по-прежнему в заголовке **`X-GPTHub-Trace`** у оркестратора, не в теле ответа модели.
 
 ### У пользователя с ролью `user` пустой селектор моделей («Выберите модель»)
 

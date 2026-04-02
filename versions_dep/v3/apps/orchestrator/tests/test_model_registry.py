@@ -26,6 +26,7 @@ def test_model_roles_file_schema():
     raw = {
         "version": 1,
         "roles": {
+            "fast_text_chat": {"aliases": ["f"]},
             "fast_text": {"aliases": ["a", "b"]},
             "doc_synthesis": {"aliases": ["d"]},
             "reasoning_code_local": {"aliases": ["t"]},

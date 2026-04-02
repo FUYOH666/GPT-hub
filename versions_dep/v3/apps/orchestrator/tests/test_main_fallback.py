@@ -60,7 +60,12 @@ async def test_non_stream_retries_on_429_then_200():
             r = await ac.post(
                 "/v1/chat/completions",
                 headers={"Authorization": "Bearer test-key"},
-                json={"model": "ignored-when-auto", "messages": [{"role": "user", "content": "hello"}]},
+                json={
+                    "model": "ignored-when-auto",
+                    "messages": [
+                        {"role": "user", "content": "What is a Python list in one sentence?"}
+                    ],
+                },
             )
         assert r.status_code == 200
         assert calls == ["gpt-hub-fast", "gpt-hub-strong"]
@@ -70,7 +75,7 @@ async def test_non_stream_retries_on_429_then_200():
         trace = json.loads(raw)
         assert trace["orchestrator_fallback"]["retries_after_failure"] == 1
         assert trace["orchestrator_fallback"]["model_selected"] == "gpt-hub-strong"
-        assert trace["prompt_version"] == "v0.5.0"
+        assert trace["prompt_version"] == "v0.5.1"
         assert trace["classifier_source"] == "heuristic"
         assert trace["fallback_used"] is True
         assert trace.get("server_clock_iso")

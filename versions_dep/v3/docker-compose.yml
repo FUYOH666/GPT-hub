@@ -121,11 +121,11 @@ services:
       OPENAI_API_BASE_URL: http://orchestrator:8000/v1
       OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
       # Список моделей и выбор по умолчанию (Open WebUI запрашивает GET …/v1/models у оркестратора)
-      DEFAULT_MODELS: ${DEFAULT_MODELS:-gpt-hub-strong}
-      DEFAULT_PINNED_MODELS: ${DEFAULT_PINNED_MODELS:-gpt-hub-strong,gpt-hub-fast,gpt-hub-vision,gpt-hub-turbo}
+      DEFAULT_MODELS: ${DEFAULT_MODELS:-gpt-hub-fast}
+      DEFAULT_PINNED_MODELS: ${DEFAULT_PINNED_MODELS:-gpt-hub-fast,gpt-hub-strong,gpt-hub-vision,gpt-hub-turbo}
       # Без этого у роли user часто пустой селектор: RBAC режет модели, админ их видит (bypass admin)
       BYPASS_MODEL_ACCESS_CONTROL: ${BYPASS_MODEL_ACCESS_CONTROL:-true}
-      TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub-strong}
+      TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub-fast}
       ENABLE_MEMORIES: ${ENABLE_MEMORIES:-true}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE:-openai}
       RAG_OPENAI_API_BASE_URL: ${RAG_OPENAI_API_BASE_URL:-http://embedding-shim:8000/v1}

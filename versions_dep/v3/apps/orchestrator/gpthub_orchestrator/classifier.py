@@ -4,14 +4,60 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from enum import Enum
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Short acknowledgments / goodbyes → use fast_text_chat (no gpt-hub-strong in chain)
+_ACK_PHRASES = frozenset(
+    {
+        "thanks",
+        "thank you",
+        "thx",
+        "ty",
+        "ok",
+        "okay",
+        "да",
+        "нет",
+        "yes",
+        "no",
+        "спасибо",
+        "мерси",
+        "понял",
+        "понятно",
+        "bye",
+        "пока",
+    }
+)
+
+_GREETING_START = re.compile(
+    r"^\s*(?:"
+    r"(?:привет|здравствуй(?:те)?|доброе\s+утро|добрый\s+(?:день|вечер|утро)|хай|салют)"
+    r"(?:[,\s!.…]|$)|"
+    r"(?:\bhi\b|\bhello\b|\bhey\b|howdy|greetings)"
+    r"(?:[,\s!.…]|$)|"
+    r"good\s+(?:morning|evening|afternoon|day)\b"
+    r")",
+    re.IGNORECASE | re.UNICODE,
+)
+
+
+def _is_greeting_or_tiny(text: str) -> bool:
+    s = text.strip()
+    if not s:
+        return False
+    if s.lower().rstrip("!.… ") in _ACK_PHRASES:
+        return True
+    if len(s) > 96:
+        return False
+    return bool(_GREETING_START.match(s))
+
 
 class TaskType(str, Enum):
     SIMPLE_CHAT = "simple_chat"
+    GREETING_OR_TINY = "greeting_or_tiny"
     CODE_HELP = "code_help"
     FILE_ANALYSIS = "file_analysis"
     SUMMARIZATION = "summarization"
@@ -105,6 +151,8 @@ def classify_messages(messages: list[dict[str, Any]]) -> dict[str, Any]:
         task = TaskType.SUMMARIZATION if doc_hints else TaskType.FILE_ANALYSIS
     elif code_hints or analyze_hints:
         task = TaskType.CODE_HELP
+    elif not has_image and _is_greeting_or_tiny(last_user):
+        task = TaskType.GREETING_OR_TINY
     else:
         task = TaskType.SIMPLE_CHAT
 

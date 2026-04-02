@@ -23,8 +23,22 @@ def _settings(**kwargs: object) -> Settings:
     return Settings(**base)
 
 
-def test_golden_simple_chat_fast_text():
+def test_golden_greeting_fast_text_chat():
     msgs = [{"role": "user", "content": "Привет, как дела?"}]
+    cl = classify_messages(msgs)
+    assert cl["task_type"] == "greeting_or_tiny"
+    rs = choose_model(cl, _settings())
+    assert rs["model_role"] == "fast_text_chat"
+    assert rs["model_name"] == "gpt-hub-fast"
+    assert "gpt-hub-strong" not in rs["fallback_aliases"]
+    pr = load_role_prompts()
+    out = apply_role_system_messages(msgs, rs["model_role"], pr)
+    assert out[0]["role"] == "system"
+    assert "[GPTHub role: fast_text_chat]" in out[0]["content"]
+
+
+def test_golden_simple_chat_fast_text():
+    msgs = [{"role": "user", "content": "Объясни в двух предложениях, что такое список в Python."}]
     cl = classify_messages(msgs)
     assert cl["task_type"] == "simple_chat"
     rs = choose_model(cl, _settings())
@@ -120,7 +134,7 @@ def test_golden_multimodal_debug_vision():
 def test_client_system_appended_after_role_prompt():
     msgs = [
         {"role": "system", "content": "Отвечай кратко по-французски."},
-        {"role": "user", "content": "hello"},
+        {"role": "user", "content": "What is 2+2 in one sentence?"},
     ]
     cl = classify_messages([msgs[1]])
     rs = choose_model(cl, _settings())

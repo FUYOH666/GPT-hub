@@ -8,7 +8,7 @@
 
 1. **Жёсткие safety-правила** — когда появятся в коде (сейчас не подмешиваются).
 2. **Session clock** — актуальные дата и время **на момент запроса** (часовой пояс из `ORCHESTRATOR_CLOCK_TZ`, по умолчанию UTC), чтобы модель могла отвечать на «какой сегодня день / который час» без веб-поиска. Реализация: [clock_context.py](../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/clock_context.py); в trace: `server_clock_iso`. Отключение: `INJECT_REQUEST_DATETIME=false`.
-3. **GPTHub role system** — текст из [role_prompts.yaml](../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/role_prompts.yaml), выбирается по `model_role` маршрутизатора. Задаёт **базовый режим** (короткий ответ, код, документ, vision и т.д.).
+3. **GPTHub role system** — текст из [role_prompts.yaml](../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/role_prompts.yaml), выбирается по `model_role` маршрутизатора (`fast_text`, **`fast_text_chat`** для приветствий/коротких реплик без strong в цепочке, `doc_synthesis`, `reasoning_code_*`, `vision_general`). Задаёт **базовый режим** ответа.
 4. **Workspace / project** — зарезервировано под фазы памяти и RAG по workspace; пока не внедрено.
 5. **Системные сообщения из клиента** (Open WebUI, API) — **дополняют** роль: добавляются **после** ролевого текста с разделителем `--- Additional instructions (from chat client) ---`. Так пользовательский «отвечай как философ» **не отменяет** выбранный GPTHub-режим.
 6. **Сообщения пользователя и ассистента** — без изменения порядка после нормализации `system`.

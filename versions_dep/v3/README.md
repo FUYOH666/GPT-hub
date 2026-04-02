@@ -34,7 +34,7 @@ docker compose build orchestrator && docker compose up -d orchestrator
 
 **Конфликт портов:** v3 и [v2_c2](../v2_c2) оба используют **3000** и **4000** — остановите другой стек перед запуском.
 
-В compose WebUI направлен на **orchestrator** (`OPENAI_API_BASE_URL`). Оркестратор проксирует **`GET /v1/models`** и **`POST /v1/chat/completions`** в LiteLLM — без `/v1/models` селектор в UI остаётся пустым («Выберите модель»). Закрепление и дефолт: `DEFAULT_MODELS`, `DEFAULT_PINNED_MODELS` в compose / `.env`.
+В compose WebUI направлен на **orchestrator** (`OPENAI_API_BASE_URL`). Оркестратор проксирует **`GET /v1/models`** и **`POST /v1/chat/completions`** в LiteLLM — без `/v1/models` селектор в UI остаётся пустым («Выберите модель»). Закрепление и дефолт: `DEFAULT_MODELS`, `DEFAULT_PINNED_MODELS` в compose / `.env`. По умолчанию **`DEFAULT_MODELS=gpt-hub-fast`**, чтобы бейдж в UI совпадал с лёгким алиасом и реже ловить «рассуждения» в тексте ответа (см. [OPENWEBUI_ROLES](../../docs/OPENWEBUI_ROLES.md)). При **`AUTO_ROUTE_MODEL=false`** поведение задаётся только выбранной в UI моделью.
 
 **Веб-поиск (Tavily):** в compose по умолчанию `ENABLE_WEB_SEARCH=true`; в `.env` задайте `TAVILY_API_KEY=…` (секрет не коммитить), при необходимости `WEB_SEARCH_ENGINE=tavily`. После смены ключа — `docker compose up -d --force-recreate open-webui`. В чате часто нужно явно включить режим веб-поиска у сообщения (иконка), иначе Tavily не вызывается. Подробнее — [.env.example](.env.example) и [docs/TEAM_PUBLIC_ACCESS.md](../../docs/TEAM_PUBLIC_ACCESS.md).
 

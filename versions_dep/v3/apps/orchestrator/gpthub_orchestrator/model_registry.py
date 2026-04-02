@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 _PACKAGE_DATA = Path(__file__).resolve().parent / "data" / "model_roles.yaml"
 
 # Keys in model_roles.yaml roles:
+ROLE_FAST_TEXT_CHAT: Final = "fast_text_chat"
 ROLE_FAST_TEXT: Final = "fast_text"
 ROLE_REASONING_LOCAL: Final = "reasoning_code_local"
 ROLE_REASONING_OPENROUTER: Final = "reasoning_code_openrouter"
@@ -24,6 +25,7 @@ ROLE_DOC: Final = "doc_synthesis"
 # All keys that must exist in model_roles.yaml and role_prompts.yaml
 MODEL_ROLE_KEYS: Final[frozenset[str]] = frozenset(
     {
+        ROLE_FAST_TEXT_CHAT,
         ROLE_FAST_TEXT,
         ROLE_DOC,
         ROLE_REASONING_LOCAL,

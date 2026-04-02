@@ -8,6 +8,7 @@ from typing import Any
 from gpthub_orchestrator.model_registry import (
     ROLE_DOC,
     ROLE_FAST_TEXT,
+    ROLE_FAST_TEXT_CHAT,
     ROLE_REASONING_LOCAL,
     ROLE_REASONING_OPENROUTER,
     ROLE_VISION,
@@ -39,6 +40,9 @@ def choose_model(classification: dict[str, Any], settings: Settings) -> dict[str
         else:
             role_key = ROLE_REASONING_LOCAL
             reason = "code_or_deep_analysis_local_first"
+    elif task_type == "greeting_or_tiny":
+        role_key = ROLE_FAST_TEXT_CHAT
+        reason = "greeting_or_tiny_chat"
     else:
         role_key = ROLE_FAST_TEXT
         reason = "default_text_chat"
