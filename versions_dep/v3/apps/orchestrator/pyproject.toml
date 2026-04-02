@@ -15,6 +15,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/FUYOH666"
+Repository = "https://github.com/FUYOH666/GPT-hub"
 
 [project.optional-dependencies]
 dev = [
