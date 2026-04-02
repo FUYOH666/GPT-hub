@@ -42,3 +42,17 @@ cloudflared tunnel --config /path/to/config.yml run
 Официальные доки: [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/), [Private web application](https://developers.cloudflare.com/cloudflare-one/applications/configure-apps/self-hosted-public-app/).
 
 См. также общий гайд: [TEAM_PUBLIC_ACCESS.md](TEAM_PUBLIC_ACCESS.md).
+
+---
+
+## Пошагово в Zero Trust (после установки `cloudflared`)
+
+1. **Networks → Tunnels →** ваш туннель: статус **Healthy** (реплика `darwin_arm64` и т.д.).
+2. **Routes → Add route** (или **Add published application**): публичный поддомен на зоне в Cloudflare (например `gpthub.example.com`).
+3. **Service URL (обязательно):** `http://127.0.0.1:3000` — не `https://`, не порт `8080`, пока Open WebUI в Docker слушает **3000** на этом Mac.
+4. После сохранения Cloudflare создаст **CNAME** на `….cfargotunnel.com`. Имя в DNS часто в **нижнем регистре**; откройте в браузере тот URL, который реально открывается (проверка с другой сети или LTE).
+5. Локально в [versions_dep/v3/.env](../versions_dep/v3/.env): **`WEBUI_URL=https://<тот-же-хост>`** (как в адресной строке), опционально **`OR_SITE_URL`**. Затем:  
+   `docker compose up -d --force-recreate open-webui`
+6. **Токен** туннеля не светить в чатах и скриншотах; при утечке — перевыпустить в Zero Trust.
+
+Ошибки **502 / 521**: туннель не достучался до origin — проверьте, что контейнер WebUI запущен и маршрут указывает на `127.0.0.1:3000`.

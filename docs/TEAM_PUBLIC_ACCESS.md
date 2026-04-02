@@ -53,6 +53,8 @@ flowchart LR
 - **Cloudflare Tunnel** (`cloudflared`): публичный `https://…` → `http://127.0.0.1:3000`. Шаблон конфига: [versions_dep/v3/deploy/cloudflared/config.example.yml](../versions_dep/v3/deploy/cloudflared/config.example.yml).
 - **Tailscale Funnel**: публикует порт; задайте тот же **`WEBUI_URL`**, что видит браузер.
 
+**После маршрута в Cloudflare:** в форме *Published application* поле **Service URL** = `http://127.0.0.1:3000`; DNS (CNAME) создаётся панелью. **`WEBUI_URL`** в `.env` должен совпадать с URL в браузере (учёт регистра в DNS). Подробный чеклист: [CLOUDFLARE_TUNNEL_HANDOFF.md](CLOUDFLARE_TUNNEL_HANDOFF.md) (раздел «Пошагово в Zero Trust»).
+
 **Задачу человеку с доступом к Cloudflare** (скопировать в тикет / community): [CLOUDFLARE_TUNNEL_HANDOFF.md](CLOUDFLARE_TUNNEL_HANDOFF.md).
 
 Минусы: Mac должен быть включён; качество домашнего канала влияет на UX.

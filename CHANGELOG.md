@@ -13,7 +13,8 @@
 
 ### Changed
 
-- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — переструктурировано: сценарий Mac + Docker + туннель + Tailscale к GPU; сценарий VPS; канон деплоя; витрина отдельно от стека. [README.md](README.md), [AGENTS.md](AGENTS.md), [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) — ссылки обновлены.
+- [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — раздел «Пошагово в Zero Trust»: Published application, Service URL `:3000`, CNAME, `WEBUI_URL`, 502/521.
+- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — отсылка на чеклист после маршрута; ранее: Mac + туннель + Tailscale, VPS, канон; ссылки в README / AGENTS / AGENT_HANDOFF.
 - [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — `WEBUI_URL`, `OR_SITE_URL`, `ENABLE_SIGNUP`, Tailscale для ASR / instruct / опционально rerank.
 - [README.md](README.md) — таблица документов, быстрый старт с **v3** первично; v2_c2 как эталон LiteLLM и заморозка.
 - [versions_dep/v2_c2/ROADMAP.md](versions_dep/v2_c2/ROADMAP.md) — сокращён до отсылки на [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
