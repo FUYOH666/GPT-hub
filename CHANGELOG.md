@@ -13,6 +13,7 @@
 
 ### Changed
 
+- [versions_dep/v3/.env.example](versions_dep/v3/.env.example), [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — режим admin + саморегистрация с `DEFAULT_USER_ROLE=user` vs `pending`.
 - [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — раздел «Пошагово в Zero Trust»: Published application, Service URL `:3000`, CNAME, `WEBUI_URL`, 502/521.
 - [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — отсылка на чеклист после маршрута; ранее: Mac + туннель + Tailscale, VPS, канон; ссылки в README / AGENTS / AGENT_HANDOFF.
 - [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — `WEBUI_URL`, `OR_SITE_URL`, `ENABLE_SIGNUP`, Tailscale для ASR / instruct / опционально rerank.
