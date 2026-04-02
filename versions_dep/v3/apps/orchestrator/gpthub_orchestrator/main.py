@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from gpthub_orchestrator.classifier import classify_messages
 from gpthub_orchestrator.clock_context import build_session_clock_block
 from gpthub_orchestrator.messages import apply_role_system_messages
+from gpthub_orchestrator.public_models import apply_models_catalog, map_facade_model_to_litellm
 from gpthub_orchestrator.role_prompts import load_role_prompts
 from gpthub_orchestrator.router import choose_model
 from gpthub_orchestrator.settings import Settings, load_settings
@@ -90,7 +91,18 @@ async def openai_list_models(
     resp = await http.get(url, headers={"Authorization": request.headers.get("Authorization", "")})
     if resp.status_code >= 400:
         logger.warning("litellm_models_error %s %s", resp.status_code, resp.text[:400])
-    return _error_json_response(resp)
+        return _error_json_response(resp)
+    ct = resp.headers.get("content-type", "")
+    if "application/json" not in ct:
+        return _error_json_response(resp)
+    try:
+        payload = resp.json()
+    except json.JSONDecodeError:
+        return _error_json_response(resp)
+    if not isinstance(payload, dict):
+        return _error_json_response(resp)
+    filtered = apply_models_catalog(payload, settings)
+    return JSONResponse(status_code=200, content=filtered)
 
 
 def _error_json_response(resp: httpx.Response) -> JSONResponse:
@@ -120,6 +132,8 @@ async def chat_completions(
     messages = body.get("messages")
     if not isinstance(messages, list):
         raise HTTPException(status_code=400, detail="messages must be a list")
+
+    map_facade_model_to_litellm(body, settings)
 
     classification = classify_messages(messages)
     router_suggestion = choose_model(classification, settings)

@@ -54,6 +54,15 @@ class Settings(BaseSettings):
         default="UTC",
         description="IANA timezone for inject_request_datetime (e.g. Europe/Moscow, UTC)",
     )
+    orchestrator_models_catalog: Literal["all", "single_public"] = Field(
+        default="single_public",
+        description="GET /v1/models: expose all LiteLLM aliases or a single public facade id for Open WebUI",
+    )
+    orchestrator_public_model_id: str = Field(
+        default="gpt-hub",
+        min_length=1,
+        description="Public model id shown in UI when catalog is single_public; must not be a LiteLLM alias",
+    )
 
     @field_validator("model_roles_path", "role_prompts_path", mode="before")
     @classmethod
@@ -62,6 +71,11 @@ class Settings(BaseSettings):
             return None
         s = str(v).strip()
         return s if s else None
+
+    @field_validator("orchestrator_public_model_id", mode="after")
+    @classmethod
+    def strip_public_model_id(cls, v: str) -> str:
+        return v.strip()
 
 
 def load_settings() -> Settings:
