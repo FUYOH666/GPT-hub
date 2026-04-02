@@ -13,7 +13,8 @@
 | [versions_dep/v3/CONTINUATION.md](versions_dep/v3/CONTINUATION.md) | Handoff для нового чата: Docker v2↔v3, промпт |
 | [CONSTRUCTOR.md](CONSTRUCTOR.md) | Конструктор: build/buy, OSS, риски, сроки хакатона |
 | [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md) | Питч, сценарий демо, сдача на Платформу |
-| [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (VPS или туннель), прокси WS/SSE, безопасность; витрина/URL на лендинге — отдельный репо сайта |
+| [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (Mac+туннель или VPS), прокси WS/SSE, безопасность; витрина — отдельный репо сайта |
+| [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) | Текст задачи для человека с доступом к Cloudflare (Tunnel → `localhost:3000`) |
 | [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) | Краткий контекст для агента другого проекта (например Scanovich) |
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |

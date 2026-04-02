@@ -1,0 +1,44 @@
+# Задача для человека с доступом к Cloudflare (Tunnel → Open WebUI)
+
+Скопируйте блок ниже целиком в тикет / чат коллеге или в [Cloudflare Community](https://community.cloudflare.com/) (раздел **Zero Trust** / **Tunnels**), подставив свои имена хостов. Локальный стек уже слушает **Open WebUI на порту 3000** на машине, где крутится Docker (`http://127.0.0.1:3000`).
+
+---
+
+**Контекст:** нужен публичный **HTTPS** до внутреннего веб-интерфейса на домашнем/офисном Mac. Сервис — **Open WebUI** (Docker), порт **3000** на localhost. Наружу не выставляем другие порты.
+
+**Просьба:**
+
+1. В аккаунте **Cloudflare Zero Trust** создать **Cloudflare Tunnel** (или выдать инструкцию), чтобы трафик с выбранного поддомена шёл на **`http://127.0.0.1:3000`** на машине, где запущен `cloudflared`.
+2. Выбрать hostname вида **`chat.<наша-зона>.com`** (или тот, что договоримся) и настроить DNS-запись через туннель (CNAME на `…cfargotunnel.com` или как рекомендует Cloudflare для вашего типа туннеля).
+3. Подтвердить, что включены **WebSocket** и длинные ответы (**SSE**) — для чата со стримингом; при проблемах указать, какие опции в панели Cloudflare трогать (не режем Upgrade / не кэшировать HTML API путей WebUI).
+4. (Опционально) Выдать **`TUNNEL_TOKEN`** для запуска `cloudflared tunnel run --token …` как службы на Mac, либо дать пошагово: `cloudflared tunnel login` → создание туннеля → содержимое **`config.yml`** и путь к **`credentials.json`**.
+
+**Ограничения:** токены и UUID туннеля **не** класть в git; хранить в менеджере секретов / только на машине с Docker.
+
+**После готовности туннеля** владелец стека задаёт в `versions_dep/v3/.env`: `WEBUI_URL=https://chat.<зона>.com` и пересоздаёт контейнер `open-webui` (`docker compose up -d --force-recreate open-webui`).
+
+---
+
+## Пример `config.yml` (шаблон, без реальных имён)
+
+Замените `TUNNEL_UUID`, путь к credentials и hostname.
+
+```yaml
+tunnel: TUNNEL_UUID
+credentials-file: /Users/YOU/.cloudflared/TUNNEL_UUID.json
+
+ingress:
+  - hostname: chat.example.com
+    service: http://127.0.0.1:3000
+  - service: http_status:404
+```
+
+Запуск вручную для проверки:
+
+```bash
+cloudflared tunnel --config /path/to/config.yml run
+```
+
+Официальные доки: [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/), [Private web application](https://developers.cloudflare.com/cloudflare-one/applications/configure-apps/self-hosted-public-app/).
+
+См. также общий гайд: [TEAM_PUBLIC_ACCESS.md](TEAM_PUBLIC_ACCESS.md).

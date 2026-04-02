@@ -4,6 +4,7 @@
 
 ### Added
 
+- [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — готовый текст задачи для специалиста / Cloudflare Community; шаблон [versions_dep/v3/deploy/cloudflared/config.example.yml](versions_dep/v3/deploy/cloudflared/config.example.yml).
 - [AUTHORS.md](AUTHORS.md) — авторство (Aleksandr Mordvinov / [@FUYOH666](https://github.com/FUYOH666)); раздел в [README.md](README.md); поля `authors` / `[project.urls]` в [versions_dep/v3/apps/orchestrator/pyproject.toml](versions_dep/v3/apps/orchestrator/pyproject.toml).
 - [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) — приватный репозиторий GitHub (`gh repo create` или веб + `git push`).
 - [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — публичный HTTPS для Open WebUI (VPS / туннель), `WEBUI_URL`, WebSocket/SSE, чеклист безопасности, ограничения RAG/ASR на VPS.
@@ -12,7 +13,8 @@
 
 ### Changed
 
-- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md), [README.md](README.md), [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md), [AGENTS.md](AGENTS.md) — явно зафиксировано: файл **TEAM_PUBLIC_ACCESS** = канон деплоя Open WebUI в GPT-hub; витрина/редирект (например `website-scanovich.ai`) — отдельно от исполнения стека.
+- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — переструктурировано: сценарий Mac + Docker + туннель + Tailscale к GPU; сценарий VPS; канон деплоя; витрина отдельно от стека. [README.md](README.md), [AGENTS.md](AGENTS.md), [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) — ссылки обновлены.
+- [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — `WEBUI_URL`, `OR_SITE_URL`, `ENABLE_SIGNUP`, Tailscale для ASR / instruct / опционально rerank.
 - [README.md](README.md) — таблица документов, быстрый старт с **v3** первично; v2_c2 как эталон LiteLLM и заморозка.
 - [versions_dep/v2_c2/ROADMAP.md](versions_dep/v2_c2/ROADMAP.md) — сокращён до отсылки на [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
 - [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md) — безопасность и роутинг приведены к фактической конфигурации (guardrail injection off, цепочка v3 через orchestrator).
