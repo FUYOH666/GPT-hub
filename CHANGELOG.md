@@ -4,6 +4,7 @@
 
 ### Added
 
+- [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) — регистрация, `DEFAULT_USER_ROLE`, один admin, `WEBUI_ADMIN_EMAIL`, правка `webui.db`, ссылки из README / TEAM_PUBLIC_ACCESS / v3 README / AGENTS.
 - [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — готовый текст задачи для специалиста / Cloudflare Community; шаблон [versions_dep/v3/deploy/cloudflared/config.example.yml](versions_dep/v3/deploy/cloudflared/config.example.yml).
 - [AUTHORS.md](AUTHORS.md) — авторство (Aleksandr Mordvinov / [@FUYOH666](https://github.com/FUYOH666)); раздел в [README.md](README.md); поля `authors` / `[project.urls]` в [versions_dep/v3/apps/orchestrator/pyproject.toml](versions_dep/v3/apps/orchestrator/pyproject.toml).
 - [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) — приватный репозиторий GitHub (`gh repo create` или веб + `git push`).

@@ -19,6 +19,7 @@
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |
 | [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) | Создать приватный репозиторий на GitHub и первый push |
+| [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) | Open WebUI: регистрация, роли, один админ, `WEBUI_URL` |
 
 **Архив эксперимента:** [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md) — не отражает текущий v3.
 

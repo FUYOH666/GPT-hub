@@ -9,6 +9,7 @@
 - **Handoff / новый чат:** [CONTINUATION.md](CONTINUATION.md) — остановка v2, Docker, промпт для агента
 - **Публичный HTTPS (канон):** [../../docs/TEAM_PUBLIC_ACCESS.md](../../docs/TEAM_PUBLIC_ACCESS.md) — деплой WebUI; лендинг/редирект — репо сайта
 - **Cloudflare Tunnel:** готовый текст для коллеги / [community](https://community.cloudflare.com/) — [../../docs/CLOUDFLARE_TUNNEL_HANDOFF.md](../../docs/CLOUDFLARE_TUNNEL_HANDOFF.md); шаблон [deploy/cloudflared/config.example.yml](deploy/cloudflared/config.example.yml)
+- **Пользователи и роли Open WebUI** (регистрация, один admin, `webui.db`): [../../docs/OPENWEBUI_ROLES.md](../../docs/OPENWEBUI_ROLES.md)
 
 ## Быстрый старт
 

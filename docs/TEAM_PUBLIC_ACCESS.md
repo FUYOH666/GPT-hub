@@ -87,12 +87,12 @@ chat.example.com {
 |------|--------|
 | `ENABLE_SIGNUP=false` или инвайты | Не открывать чат всему интернету |
 | `DEFAULT_USER_ROLE=pending` + approve в админке | Каждого нового пользователя подтверждаете вручную |
-| `ENABLE_SIGNUP=true` + `DEFAULT_USER_ROLE=user` | Саморегистрация; сразу доступ к чату (вы остаётесь admin в Users) |
+| `ENABLE_SIGNUP=true` + `DEFAULT_USER_ROLE=user` | Саморегистрация; сразу доступ к чату; админ задаётся в **Users** или `WEBUI_ADMIN_EMAIL` / см. [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md) |
 | Не публиковать `:4000`, `:8089` | Меньше поверхность атаки |
 | Сильные пароли админа | Базовая гигиена |
 | HTTPS через туннель / прокси | Куки и сессии WebUI |
 
-Детали: [versions_dep/v3/README.md](../versions_dep/v3/README.md), [versions_dep/v3/.env.example](../versions_dep/v3/.env.example).
+Детали: [versions_dep/v3/README.md](../versions_dep/v3/README.md), [versions_dep/v3/.env.example](../versions_dep/v3/.env.example), роли и один админ: [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md).
 
 ## Связь с отдельным продуктом (например Scanovich)
 
