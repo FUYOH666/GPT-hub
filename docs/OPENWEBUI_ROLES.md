@@ -12,8 +12,27 @@
 | `WEBUI_ADMIN_PASSWORD` | Пароль для bootstrap админа (только если используете механизм первичного создания; не коммитить) |
 | `WEBUI_URL` | Должен совпадать с URL в браузере (особенно при Cloudflare Tunnel), иначе куки и редиректы |
 | `OR_SITE_URL` | Для OpenRouter и т.п. обычно тот же базовый URL, что и публичный UI |
+| `ENABLE_PERSISTENT_CONFIG` | `true` (по умолчанию в compose) — настройки из UI/БД **перекрывают** env; из‑за этого на экране входа может **не быть** регистрации, даже при `ENABLE_SIGNUP=true` в `.env` |
+| `ENABLE_WEB_SEARCH` | `true` — доступен веб-поиск в чате (если задан движок и ключ) |
+| `WEB_SEARCH_ENGINE` | Например `tavily` — см. официальную доку Open WebUI |
+| `TAVILY_API_KEY` | Ключ Tavily; только в локальном `.env`, не в git |
+| `BYPASS_MODEL_ACCESS_CONTROL` | `true` — все пользователи видят все модели из API (рекомендуется для команды); `false` — только RBAC/группы |
 
 После правок: `docker compose up -d --force-recreate open-webui` (из каталога `versions_dep/v3`).
+
+### У пользователя с ролью `user` пустой селектор моделей («Выберите модель»)
+
+Админы в Open WebUI по умолчанию **обходят** контроль доступа к моделям; обычные пользователи — **нет**: список моделей фильтруется по группам/RBAC, и без явных прав селектор **пустой**, хотя API оркестратора и LiteLLM в порядке.
+
+1. В compose для v3 задано **`BYPASS_MODEL_ACCESS_CONTROL=true`** (можно переопределить в `.env`). После смены: `docker compose up -d --force-recreate open-webui`.
+2. Если **`ENABLE_PERSISTENT_CONFIG=true`**, в БД мог сохраниться старый флаг — проверьте **Admin Panel → Settings** (разделы про модели / доступ) или временно отключите persistent config.
+3. Альтернатива без bypass: **Admin → Groups** — выдать группе `user` доступ к нужным моделям (или сделать пресеты публичными).
+
+### Нет ссылки «Регистрация» на странице входа
+
+1. Зайдите под **admin** → **Admin Panel** → **Settings** (разделы вроде **General** / **Authentication**) и включите **регистрацию новых пользователей** (название пункта зависит от версии Open WebUI), затем сохраните.
+2. Проверьте в контейнере: `docker compose exec open-webui printenv ENABLE_SIGNUP ENABLE_PERSISTENT_CONFIG` — убедитесь, что `ENABLE_SIGNUP=true`.
+3. Крайний вариант: в `.env` выставить `ENABLE_PERSISTENT_CONFIG=false` и пересоздать `open-webui` — тогда приоритет у env, но часть настроек из UI может перестать применяться как раньше; делайте осознанно.
 
 ## Режим «один админ, остальные регистрируются сами»
 

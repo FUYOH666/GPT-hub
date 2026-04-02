@@ -12,6 +12,9 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from gpthub_orchestrator.classifier import classify_messages
+from gpthub_orchestrator.clock_context import build_session_clock_block
+from gpthub_orchestrator.messages import apply_role_system_messages
+from gpthub_orchestrator.role_prompts import load_role_prompts
 from gpthub_orchestrator.router import choose_model
 from gpthub_orchestrator.settings import Settings, load_settings
 from gpthub_orchestrator.trace import build_trace, trace_to_header_value
@@ -34,6 +37,7 @@ def _retryable_litellm_status(status_code: int) -> bool:
 async def lifespan(app: FastAPI):
     settings = load_settings()
     _configure_logging(settings.log_level)
+    load_role_prompts(settings.role_prompts_path)
     sec = float(settings.litellm_timeout_seconds)
     timeout = httpx.Timeout(
         connect=min(60.0, sec),
@@ -119,6 +123,17 @@ async def chat_completions(
 
     classification = classify_messages(messages)
     router_suggestion = choose_model(classification, settings)
+    role_prompts = load_role_prompts(settings.role_prompts_path)
+    role_key = str(router_suggestion["model_role"])
+    clock_prefix, server_clock_iso = build_session_clock_block(settings)
+    body["messages"] = apply_role_system_messages(
+        list(messages),
+        role_key,
+        role_prompts,
+        session_clock_prefix=clock_prefix,
+    )
+    prompt_version = role_prompts.prompt_version
+
     chain: list[str] = list(router_suggestion.get("fallback_aliases") or [router_suggestion["model_name"]])
 
     model_used = str(body.get("model") or chain[0])
@@ -142,6 +157,9 @@ async def chat_completions(
             model_used=str(body.get("model", model_used)),
             artifacts=[],
             orchestrator_fallback=stream_fb,
+            prompt_version=prompt_version,
+            classifier_source="heuristic",
+            server_clock_iso=server_clock_iso,
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
 
@@ -215,6 +233,9 @@ async def chat_completions(
             router_suggestion=router_suggestion,
             model_used=model_used,
             artifacts=[],
+            prompt_version=prompt_version,
+            classifier_source="heuristic",
+            server_clock_iso=server_clock_iso,
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
         resp = await http.post(url, json=body, headers={"Authorization": auth_header})
@@ -251,6 +272,9 @@ async def chat_completions(
                 model_used=winning_model,
                 artifacts=[],
                 orchestrator_fallback=fb_meta,
+                prompt_version=prompt_version,
+                classifier_source="heuristic",
+                server_clock_iso=server_clock_iso,
             )
             logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
             out = resp.json()
@@ -281,6 +305,9 @@ async def chat_completions(
         model_used=winning_model,
         artifacts=[],
         orchestrator_fallback=fb_meta,
+        prompt_version=prompt_version,
+        classifier_source="heuristic",
+        server_clock_iso=server_clock_iso,
     )
     logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
     logger.warning("litellm_error %s %s", last_resp.status_code, last_resp.text[:500])

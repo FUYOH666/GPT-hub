@@ -4,6 +4,7 @@
 
 ### Added
 
+- **v3 orchestrator — session clock:** [clock_context.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/clock_context.py) подмешивает в system актуальные дату/время на запрос; настройки `INJECT_REQUEST_DATETIME`, `ORCHESTRATOR_CLOCK_TZ`; trace `server_clock_iso`; тесты [test_clock_context.py](versions_dep/v3/apps/orchestrator/tests/test_clock_context.py). Документация: [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md), [.env.example](versions_dep/v3/.env.example), [versions_dep/v3/README.md](versions_dep/v3/README.md).
 - [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) — регистрация, `DEFAULT_USER_ROLE`, один admin, `WEBUI_ADMIN_EMAIL`, правка `webui.db`, ссылки из README / TEAM_PUBLIC_ACCESS / v3 README / AGENTS.
 - [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — готовый текст задачи для специалиста / Cloudflare Community; шаблон [versions_dep/v3/deploy/cloudflared/config.example.yml](versions_dep/v3/deploy/cloudflared/config.example.yml).
 - [AUTHORS.md](AUTHORS.md) — авторство (Aleksandr Mordvinov / [@FUYOH666](https://github.com/FUYOH666)); раздел в [README.md](README.md); поля `authors` / `[project.urls]` в [versions_dep/v3/apps/orchestrator/pyproject.toml](versions_dep/v3/apps/orchestrator/pyproject.toml).
@@ -11,9 +12,18 @@
 - [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — публичный HTTPS для Open WebUI (VPS / туннель), `WEBUI_URL`, WebSocket/SSE, чеклист безопасности, ограничения RAG/ASR на VPS.
 - [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) и корневой [AGENTS.md](AGENTS.md) — краткий handoff для агента другого репозитория.
 - [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md) — архив бывшего `readme.md` v1_z; актуальный стек описан в v3.
+- **v3 orchestrator — фаза 0.5 (реализация):** [role_prompts.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/role_prompts.yaml), [role_prompts.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/role_prompts.py), [messages.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/messages.py); trace: `prompt_version`, `task_type`, `selected_model`, `fallback_used`, `classifier_source`, `attachments_detected`; `ROLE_PROMPTS_PATH`; валидация полноты ролей в [model_registry.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/model_registry.py); тесты golden + trace; [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md), [docs/DEMO_PROMPTS.md](docs/DEMO_PROMPTS.md).
 
 ### Changed
 
+- [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — `ENABLE_WEB_SEARCH` по умолчанию `true`; сервис `orchestrator`: `INJECT_REQUEST_DATETIME`, `ORCHESTRATOR_CLOCK_TZ`.
+- [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md) — шаг **Session clock** в порядке system-сообщений; переменные `INJECT_REQUEST_DATETIME`, `ORCHESTRATOR_CLOCK_TZ`.
+- [versions_dep/v3/README.md](versions_dep/v3/README.md) — ссылки на PROMPT_PRECEDENCE / DEMO_PROMPTS, `role_prompts.yaml`, расширенное описание trace, команда пересборки `orchestrator`; [AGENTS.md](AGENTS.md) — промпты и демо-доки.
+- [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) — фаза **0.5** (в т.ч. выполненные 0.5.1–0.5.4, приёмка), **«Адаптация под модели организатора»**, приоритет времени до конкурса, уточнение «Не делаем»; [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md) — config-driven role prompts; [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — `ROLE_PROMPTS_PATH`; [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — `MODEL_ROLES_PATH`, `ROLE_PROMPTS_PATH` у `orchestrator`; [README.md](README.md) — ссылки на PROMPT_PRECEDENCE / DEMO_PROMPTS.
+- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md), [versions_dep/v3/README.md](versions_dep/v3/README.md), [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) — Tavily / веб-поиск: переменные в локальном `.env`, пересоздание `open-webui`.
+- [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — `BYPASS_MODEL_ACCESS_CONTROL` (по умолчанию `true`), чтобы у роли `user` не был пустой селектор моделей; [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md), [versions_dep/v3/.env.example](versions_dep/v3/.env.example).
+- [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) — проброс `ENABLE_WEB_SEARCH`, `WEB_SEARCH_ENGINE`, `TAVILY_API_KEY` в `open-webui`; [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — блок Tavily (ключ без кавычек, `ENABLE_WEB_SEARCH=true`).
+- [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) — `ENABLE_PERSISTENT_CONFIG` и блок «Нет ссылки регистрации на странице входа» (UI vs env).
 - [versions_dep/v3/.env.example](versions_dep/v3/.env.example), [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — режим admin + саморегистрация с `DEFAULT_USER_ROLE=user` vs `pending`.
 - [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — раздел «Пошагово в Zero Trust»: Published application, Service URL `:3000`, CNAME, `WEBUI_URL`, 502/521.
 - [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — отсылка на чеклист после маршрута; ранее: Mac + туннель + Tailscale, VPS, канон; ссылки в README / AGENTS / AGENT_HANDOFF.

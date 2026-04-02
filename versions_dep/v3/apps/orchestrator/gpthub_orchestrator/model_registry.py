@@ -21,6 +21,17 @@ ROLE_REASONING_OPENROUTER: Final = "reasoning_code_openrouter"
 ROLE_VISION: Final = "vision_general"
 ROLE_DOC: Final = "doc_synthesis"
 
+# All keys that must exist in model_roles.yaml and role_prompts.yaml
+MODEL_ROLE_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        ROLE_FAST_TEXT,
+        ROLE_DOC,
+        ROLE_REASONING_LOCAL,
+        ROLE_REASONING_OPENROUTER,
+        ROLE_VISION,
+    }
+)
+
 
 class RoleAliases(BaseModel):
     aliases: list[str] = Field(min_length=1)
@@ -37,6 +48,11 @@ class RoleAliases(BaseModel):
 class ModelRolesFile(BaseModel):
     version: int = 1
     roles: dict[str, RoleAliases]
+
+    def model_post_init(self, __context: object) -> None:
+        missing = MODEL_ROLE_KEYS - set(self.roles.keys())
+        if missing:
+            raise ValueError(f"model_roles.yaml missing roles: {sorted(missing)}")
 
 
 @lru_cache(maxsize=1)

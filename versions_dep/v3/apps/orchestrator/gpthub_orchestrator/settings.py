@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,10 +38,30 @@ class Settings(BaseSettings):
         default=None,
         description="Optional path to model_roles.yaml (default: packaged data)",
     )
+    role_prompts_path: str | None = Field(
+        default=None,
+        description="Optional path to role_prompts.yaml (default: packaged data)",
+    )
     default_text_model: str = Field(default="gpt-hub-strong")
     default_vision_model: str = Field(default="gpt-hub-vision")
     default_code_heavy_model: str = Field(default="gpt-hub-turbo")
     log_level: str = Field(default="INFO")
+    inject_request_datetime: bool = Field(
+        default=True,
+        description="Prepend server date/time to system message so the model can answer 'what time is it'",
+    )
+    orchestrator_clock_tz: str = Field(
+        default="UTC",
+        description="IANA timezone for inject_request_datetime (e.g. Europe/Moscow, UTC)",
+    )
+
+    @field_validator("model_roles_path", "role_prompts_path", mode="before")
+    @classmethod
+    def empty_str_paths_to_none(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
 
 
 def load_settings() -> Settings:

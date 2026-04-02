@@ -45,6 +45,7 @@ flowchart LR
 | `AUDIO_STT_OPENAI_API_BASE_URL` | `http://<tailscale-gpu>:8001/v1` для STT в WebUI |
 | `BGE_EMBEDDING_UPSTREAM` | Обычно `http://host.docker.internal:9001` |
 | `RAG_EXTERNAL_RERANKER_URL` | По умолчанию rerank на Mac; иначе URL на другом хосте |
+| `ENABLE_WEB_SEARCH`, `WEB_SEARCH_ENGINE`, `TAVILY_API_KEY` | Веб-поиск в чате (Tavily): ключ и `ENABLE_WEB_SEARCH=true` только в **локальном** `.env`; в git не класть. После правок — `docker compose up -d --force-recreate open-webui`. См. [versions_dep/v3/.env.example](../versions_dep/v3/.env.example). |
 
 Проверка с Mac: `curl -sS -o /dev/null -w '%{http_code}' http://<tailscale-gpu>:8001/` (или health вашего ASR) и то же для `:8002`.
 

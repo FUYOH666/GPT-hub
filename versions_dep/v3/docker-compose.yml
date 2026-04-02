@@ -54,6 +54,10 @@ services:
       CODE_ROUTE_PREFERENCE: ${CODE_ROUTE_PREFERENCE:-local}
       ORCHESTRATOR_LITELLM_FALLBACK: ${ORCHESTRATOR_LITELLM_FALLBACK:-true}
       ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS: ${ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS:-4}
+      MODEL_ROLES_PATH: ${MODEL_ROLES_PATH:-}
+      ROLE_PROMPTS_PATH: ${ROLE_PROMPTS_PATH:-}
+      INJECT_REQUEST_DATETIME: ${INJECT_REQUEST_DATETIME:-true}
+      ORCHESTRATOR_CLOCK_TZ: ${ORCHESTRATOR_CLOCK_TZ:-UTC}
     depends_on:
       litellm:
         condition: service_healthy
@@ -119,6 +123,8 @@ services:
       # Список моделей и выбор по умолчанию (Open WebUI запрашивает GET …/v1/models у оркестратора)
       DEFAULT_MODELS: ${DEFAULT_MODELS:-gpt-hub-strong}
       DEFAULT_PINNED_MODELS: ${DEFAULT_PINNED_MODELS:-gpt-hub-strong,gpt-hub-fast,gpt-hub-vision,gpt-hub-turbo}
+      # Без этого у роли user часто пустой селектор: RBAC режет модели, админ их видит (bypass admin)
+      BYPASS_MODEL_ACCESS_CONTROL: ${BYPASS_MODEL_ACCESS_CONTROL:-true}
       TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub-strong}
       ENABLE_MEMORIES: ${ENABLE_MEMORIES:-true}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE:-openai}
@@ -133,6 +139,10 @@ services:
       AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
       AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
       AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
+      # Веб-поиск (Tavily): по умолчанию включён; без TAVILY_API_KEY в .env поиск может падать в UI
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-tavily}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
     depends_on:
       litellm:
         condition: service_healthy

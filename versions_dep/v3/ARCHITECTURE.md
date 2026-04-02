@@ -22,6 +22,7 @@
 | Cost-aware routing | **Rule-based router v1** (эвристики по модальностям и ключевым словам), без learned router |
 | Kimi / «swarm» | Только **параллельный preprocessing** (PDF / image / audio одновременно), без multi-agent театра |
 | LiteLLM / gateway | Один **LLM gateway** за оркестратором: алиасы, fallback, единый вызов |
+| Политики по роли | **System-промпты по роли маршрутизатора** (config-driven YAML), см. ROADMAP фаза 0.5 |
 | Portkey-подобное | На MVP: **fallback** (уже в LiteLLM) + идея **кэша** позже |
 | Marker / Surya / layout | PDF: text extract → OCR fallback → layout-aware chunking — **по фазам** (см. ROADMAP) |
 | CLIP + YOLO + … | **Не в MVP** — vision v1: VLM или OCR + краткий артефакт |
@@ -30,7 +31,8 @@
 
 ## Что явно не делаем в MVP
 
-- Learned / ML router, complexity estimator «как в статье»
+- Learned / ML router **как замена** эвристическому роутеру; опциональный LLM-классификатор — только за явным флагом и приёмкой (см. ROADMAP 0.5.5)
+- Complexity estimator «как в статье»
 - Agent swarm, planner/critic/retrieval агенты
 - CV-zoo отдельно от «инженерного скрина/PDF»
 - Дублирование Portkey-level AI infra platform
