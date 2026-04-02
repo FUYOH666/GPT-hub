@@ -37,3 +37,5 @@
 - `GREETING_CANNED_RESPONSE_ENABLED` — `true` / `false` (по умолчанию `true`): короткие приветствия без картинок — ответ без вызова LiteLLM.
 - `GREETING_CANNED_MESSAGE` — текст canned-ответа (строка, не пустая).
 - `ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE` — `true` / `false` (по умолчанию `false`): last-resort вырезание известных преамбул CoT из `content` **только для non-stream** ответов upstream.
+- `ORCHESTRATOR_REQUEST_REASONING_EXCLUDE` — `true` / `false` (по умолчанию `true`): мерж `reasoning: { exclude: true }` в запрос к LiteLLM (OpenRouter и др.).
+- `ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE` — `true` / `false` (по умолчанию `true`): удаление `reasoning*` / `thinking*` полей из ответа клиенту (non-stream и stream).

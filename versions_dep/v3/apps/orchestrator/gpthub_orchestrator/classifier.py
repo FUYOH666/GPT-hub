@@ -43,12 +43,28 @@ _GREETING_START = re.compile(
     re.IGNORECASE | re.UNICODE,
 )
 
+# Whole-message casual check-ins (short only) → canned / fast_text_chat path
+_CASUAL_SMALL_TALK_ONLY = re.compile(
+    r"^\s*(?:"
+    r"как\s+дела\b\s*[?.!…]*\s*|"
+    r"как\s+ты\b\s*[?.!…]*\s*|"
+    r"что\s+нового\b\s*[?.!…]*\s*|"
+    r"ты\s+тут\b\s*[?.!…]*\s*|"
+    r"how\s+are\s+you\b\s*[?.!…]*\s*|"
+    r"what'?s\s+up\b\s*[?.!…]*\s*|"
+    r"how'?s\s+it\s+going\b\s*[?.!…]*\s*"
+    r")$",
+    re.IGNORECASE | re.UNICODE,
+)
+
 
 def _is_greeting_or_tiny(text: str) -> bool:
     s = text.strip()
     if not s:
         return False
     if s.lower().rstrip("!.… ") in _ACK_PHRASES:
+        return True
+    if len(s) <= 80 and bool(_CASUAL_SMALL_TALK_ONLY.match(s)):
         return True
     if len(s) > 96:
         return False

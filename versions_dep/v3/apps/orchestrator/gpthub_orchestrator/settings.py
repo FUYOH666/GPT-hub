@@ -76,6 +76,14 @@ class Settings(BaseSettings):
         default=False,
         description="If true, non-stream responses may strip known CoT preambles from assistant content (last resort)",
     )
+    orchestrator_request_reasoning_exclude: bool = Field(
+        default=True,
+        description="If true, merge reasoning.exclude into chat completion body for upstream (e.g. OpenRouter)",
+    )
+    orchestrator_strip_reasoning_from_response: bool = Field(
+        default=True,
+        description="If true, remove reasoning/thinking fields from JSON and stream chunks before the client",
+    )
 
     @field_validator("model_roles_path", "role_prompts_path", mode="before")
     @classmethod

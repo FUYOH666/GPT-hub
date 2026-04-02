@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import codecs
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -24,6 +25,11 @@ from gpthub_orchestrator.public_models import apply_models_catalog, map_facade_m
 from gpthub_orchestrator.role_prompts import load_role_prompts
 from gpthub_orchestrator.router import choose_model
 from gpthub_orchestrator.settings import Settings, load_settings
+from gpthub_orchestrator.reasoning_response_filter import (
+    filter_sse_data_line_json,
+    merge_reasoning_exclude_into_body,
+    strip_reasoning_from_completion_payload,
+)
 from gpthub_orchestrator.response_preamble_strip import strip_known_cot_preamble
 from gpthub_orchestrator.trace import build_trace, trace_to_header_value
 
@@ -49,6 +55,11 @@ def _apply_preamble_strip_to_completion(payload: dict[str, Any], settings: Setti
         if applied:
             msg["content"] = new_c
             logger.info("preamble_strip_applied_to_completion")
+
+
+def _apply_reasoning_strip_to_completion(payload: dict[str, Any], settings: Settings) -> None:
+    if settings.orchestrator_strip_reasoning_from_response:
+        strip_reasoning_from_completion_payload(payload)
 
 
 def _configure_logging(level: str) -> None:
@@ -216,6 +227,11 @@ async def chat_completions(
         model_used = chain[0]
         body["model"] = model_used
 
+    merge_reasoning_exclude_into_body(
+        body,
+        enabled=settings.orchestrator_request_reasoning_exclude,
+    )
+
     stream = bool(body.get("stream"))
     url = f"{settings.litellm_base_url.rstrip('/')}/v1/chat/completions"
     auth_header = request.headers.get("Authorization", "")
@@ -274,8 +290,24 @@ async def chat_completions(
                         yield _sse_error_event(msg, code=r.status_code)
                         yield b"data: [DONE]\n\n"
                         return
+                    decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+                    pending = ""
                     async for chunk in r.aiter_bytes():
-                        yield chunk
+                        pending += decoder.decode(chunk)
+                        while "\n" in pending:
+                            line, pending = pending.split("\n", 1)
+                            if settings.orchestrator_strip_reasoning_from_response:
+                                line = filter_sse_data_line_json(
+                                    line,
+                                    strip_enabled=True,
+                                )
+                            yield (line + "\n").encode("utf-8")
+                    pending += decoder.decode(b"", final=True)
+                    if pending:
+                        line = pending.rstrip("\r")
+                        if settings.orchestrator_strip_reasoning_from_response:
+                            line = filter_sse_data_line_json(line, strip_enabled=True)
+                        yield (line + "\n").encode("utf-8")
             except httpx.TimeoutException:
                 logger.exception("litellm_stream_timeout")
                 yield _sse_error_event(
@@ -319,6 +351,7 @@ async def chat_completions(
             return _error_json_response(resp)
         out = resp.json()
         if isinstance(out, dict):
+            _apply_reasoning_strip_to_completion(out, settings)
             _apply_preamble_strip_to_completion(out, settings)
         return JSONResponse(
             content=out,
@@ -356,6 +389,7 @@ async def chat_completions(
             logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
             out = resp.json()
             if isinstance(out, dict):
+                _apply_reasoning_strip_to_completion(out, settings)
                 _apply_preamble_strip_to_completion(out, settings)
             return JSONResponse(
                 content=out,

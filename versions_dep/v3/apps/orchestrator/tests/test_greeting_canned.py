@@ -138,3 +138,34 @@ async def test_greeting_canned_stream_sse():
         assert trace.get("canned_response") is True
     finally:
         await mock_inner.aclose()
+
+
+@pytest.mark.asyncio
+async def test_casual_kak_dela_canned_skips_litellm():
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(500)
+
+    mock_inner = httpx.AsyncClient(transport=httpx.MockTransport(handler), timeout=30.0)
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            app.state.settings = Settings(
+                litellm_base_url="http://litellm.test:4000",
+                orchestrator_api_key="test-key",
+                greeting_canned_response_enabled=True,
+                greeting_canned_message="Отлично, готов помочь!",
+            )
+            app.state.http = mock_inner
+            r = await ac.post(
+                "/v1/chat/completions",
+                headers={"Authorization": "Bearer test-key"},
+                json={"model": "gpt-hub", "messages": [{"role": "user", "content": "как дела?"}]},
+            )
+        assert r.status_code == 200
+        assert calls == []
+        assert r.json()["choices"][0]["message"]["content"] == "Отлично, готов помочь!"
+    finally:
+        await mock_inner.aclose()
+

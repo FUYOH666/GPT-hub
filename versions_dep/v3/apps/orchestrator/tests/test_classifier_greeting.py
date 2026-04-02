@@ -11,6 +11,8 @@ from gpthub_orchestrator.classifier import classify_messages
     ("content", "expected_task"),
     [
         ("привет", "greeting_or_tiny"),
+        ("как дела?", "greeting_or_tiny"),
+        ("Как ты?", "greeting_or_tiny"),
         ("Привет, как дела?", "greeting_or_tiny"),
         ("Hello there!", "greeting_or_tiny"),
         ("спасибо", "greeting_or_tiny"),
