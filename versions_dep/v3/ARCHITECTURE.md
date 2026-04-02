@@ -8,6 +8,8 @@
 
 ## Принцип (зацементировать в продукте)
 
+**Response Visibility Contract:** итоговый текст для пользователя живёт в `choices[].message.content` (и stream-дельты); маршрутизация и диагностика — в trace (`X-GPTHub-Trace`) и логах, без склейки в `content`. Подробно: [../../docs/PROMPT_PRECEDENCE.md](../../docs/PROMPT_PRECEDENCE.md).
+
 **Perception stack → Context construction → Final LLM**
 
 Большая модель получает **уже подготовленный смысловой контекст** (артефакты), а не «сырой мир» целиком.

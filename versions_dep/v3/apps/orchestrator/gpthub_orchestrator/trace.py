@@ -36,6 +36,7 @@ def build_trace(
     prompt_version: str | None = None,
     classifier_source: str = "heuristic",
     server_clock_iso: str | None = None,
+    canned_response: bool | None = None,
 ) -> dict[str, Any]:
     rs = router_suggestion or {}
     tt = classification.get("task_type")
@@ -60,6 +61,8 @@ def build_trace(
         trace["prompt_version"] = prompt_version
     if server_clock_iso is not None:
         trace["server_clock_iso"] = server_clock_iso
+    if canned_response is True:
+        trace["canned_response"] = True
     if orchestrator_fallback is not None:
         trace["orchestrator_fallback"] = orchestrator_fallback
     return trace

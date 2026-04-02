@@ -13,14 +13,42 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from gpthub_orchestrator.classifier import classify_messages
 from gpthub_orchestrator.clock_context import build_session_clock_block
+from gpthub_orchestrator.greeting_canned import (
+    canned_chat_completion_json,
+    canned_chat_completion_sse_chunks,
+    client_visible_model_id,
+    greeting_canned_eligible,
+)
 from gpthub_orchestrator.messages import apply_role_system_messages
 from gpthub_orchestrator.public_models import apply_models_catalog, map_facade_model_to_litellm
 from gpthub_orchestrator.role_prompts import load_role_prompts
 from gpthub_orchestrator.router import choose_model
 from gpthub_orchestrator.settings import Settings, load_settings
+from gpthub_orchestrator.response_preamble_strip import strip_known_cot_preamble
 from gpthub_orchestrator.trace import build_trace, trace_to_header_value
 
 logger = logging.getLogger("gpthub_orchestrator")
+
+
+def _apply_preamble_strip_to_completion(payload: dict[str, Any], settings: Settings) -> None:
+    if not settings.orchestrator_strip_known_cot_preamble:
+        return
+    choices = payload.get("choices")
+    if not isinstance(choices, list):
+        return
+    for ch in choices:
+        if not isinstance(ch, dict):
+            continue
+        msg = ch.get("message")
+        if not isinstance(msg, dict):
+            continue
+        c = msg.get("content")
+        if not isinstance(c, str):
+            continue
+        new_c, applied = strip_known_cot_preamble(c)
+        if applied:
+            msg["content"] = new_c
+            logger.info("preamble_strip_applied_to_completion")
 
 
 def _configure_logging(level: str) -> None:
@@ -137,9 +165,42 @@ async def chat_completions(
 
     classification = classify_messages(messages)
     router_suggestion = choose_model(classification, settings)
+    clock_prefix, server_clock_iso = build_session_clock_block(settings)
+
+    if settings.greeting_canned_response_enabled and greeting_canned_eligible(classification):
+        role_prompts = load_role_prompts(settings.role_prompts_path)
+        prompt_version = role_prompts.prompt_version
+        model_vis = client_visible_model_id(body, settings.orchestrator_public_model_id)
+        canned_text = settings.greeting_canned_message
+        trace = build_trace(
+            classification=classification,
+            router_suggestion=router_suggestion,
+            model_used=model_vis,
+            artifacts=[],
+            prompt_version=prompt_version,
+            classifier_source="heuristic",
+            server_clock_iso=server_clock_iso,
+            canned_response=True,
+        )
+        logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
+        trace_hdr = trace_to_header_value(trace)
+        stream = bool(body.get("stream"))
+        if stream:
+
+            async def canned_sse():
+                for chunk in canned_chat_completion_sse_chunks(model=model_vis, content=canned_text):
+                    yield chunk
+
+            return StreamingResponse(
+                canned_sse(),
+                media_type="text/event-stream",
+                headers={"X-GPTHub-Trace": trace_hdr},
+            )
+        out = canned_chat_completion_json(model=model_vis, content=canned_text)
+        return JSONResponse(content=out, headers={"X-GPTHub-Trace": trace_hdr})
+
     role_prompts = load_role_prompts(settings.role_prompts_path)
     role_key = str(router_suggestion["model_role"])
-    clock_prefix, server_clock_iso = build_session_clock_block(settings)
     body["messages"] = apply_role_system_messages(
         list(messages),
         role_key,
@@ -257,6 +318,8 @@ async def chat_completions(
             logger.warning("litellm_error %s %s", resp.status_code, resp.text[:500])
             return _error_json_response(resp)
         out = resp.json()
+        if isinstance(out, dict):
+            _apply_preamble_strip_to_completion(out, settings)
         return JSONResponse(
             content=out,
             headers={"X-GPTHub-Trace": trace_to_header_value(trace)},
@@ -292,6 +355,8 @@ async def chat_completions(
             )
             logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
             out = resp.json()
+            if isinstance(out, dict):
+                _apply_preamble_strip_to_completion(out, settings)
             return JSONResponse(
                 content=out,
                 headers={"X-GPTHub-Trace": trace_to_header_value(trace)},

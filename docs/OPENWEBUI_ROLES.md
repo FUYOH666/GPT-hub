@@ -31,9 +31,18 @@
 
 1. Официально: [Reasoning & Thinking Models](https://docs.openwebui.com/features/chat-conversations/chat-features/reasoning-models/) — **Chat Controls → Advanced Parameters** или **Workspace / Admin → Models → Advanced Parameters**: режим **Reasoning Tags** (`Default` / `Enabled` / **`Disabled`** / `Custom`). Если модель шлёт нестандартные теги — задайте **Custom** или отключите детектор, если весь ответ сливается в одно поле.
 2. **Стриминг** (`stream: true`, по умолчанию в чате) обычно лучше отделяет блоки; при **non-stream** сырой текст чаще попадает в ответ целиком.
-3. В **GPTHub v3** при **`AUTO_ROUTE_MODEL=true`** приветствия и короткие реплики идут в роль **`fast_text_chat`** с цепочкой **`gpt-hub-fast` → `gpt-hub-fallback`** (без `gpt-hub-strong`), плюс в промптах запрещён вывод «thinking process» в ответ пользователю. В селекторе при **`single_public`** пользователь видит только **`gpt-hub`**; фактический алиас — в trace. Если **`AUTO_ROUTE_MODEL=false`**, запрос с **`gpt-hub`** маппится на **`default_text_model`** оркестратора (по умолчанию `gpt-hub-strong`), т.к. в LiteLLM нет id `gpt-hub`.
+3. В **GPTHub v3** для **`greeting_or_tiny`** без картинок по умолчанию включён **canned short-circuit** (`GREETING_CANNED_RESPONSE_ENABLED=true`): ответ собирается в оркестраторе **без вызова LiteLLM**, в trace — `canned_response: true`. Остальные запросы при **`AUTO_ROUTE_MODEL=true`** маршрутизируются по ролям; короткие реплики — роль **`fast_text_chat`** с цепочкой **`gpt-hub-fast` → `gpt-hub-fallback`**. System-промпты описывают только **внешнее** поведение (язык, длина, формат), без «never / do not / constraints», чтобы модель не цитировала мета-инструкции. В селекторе при **`single_public`** пользователь видит **`gpt-hub`**; фактический алиас — в trace. Если **`AUTO_ROUTE_MODEL=false`**, запрос с **`gpt-hub`** маппится на **`default_text_model`** оркестратора (по умолчанию `gpt-hub-strong`), т.к. в LiteLLM нет id `gpt-hub`.
 
 Trace маршрутизации по-прежнему в заголовке **`X-GPTHub-Trace`** у оркестратора, не в теле ответа модели.
+
+### Чеклист: сырой ответ LiteLLM / OpenRouter
+
+Если в UI всё ещё видно «мышление» после правок промптов и canned-пути:
+
+1. Снять **один** non-stream ответ `POST …/v1/chat/completions` (curl или лог прокси) и проверить JSON: есть ли поля вроде `reasoning`, `reasoning_content`, `thinking` рядом с `choices` (зависит от провайдера и версии LiteLLM).
+2. Сравнить **stream** и **non-stream**: иногда рассуждение уходит в отдельное поле только в одном режиме.
+3. В Open WebUI проверить **Reasoning Tags** (ссылка в п.1 выше): при необходимости **Disabled** или **Custom** под теги модели.
+4. Опционально в оркестраторе: `ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE=true` — только **non-stream**, вырезание **известных** преамбул из `content` (не замена настройкам UI).
 
 ### У пользователя с ролью `user` пустой селектор моделей («Выберите модель»)
 

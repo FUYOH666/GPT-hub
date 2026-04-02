@@ -63,6 +63,19 @@ class Settings(BaseSettings):
         min_length=1,
         description="Public model id shown in UI when catalog is single_public; must not be a LiteLLM alias",
     )
+    greeting_canned_response_enabled: bool = Field(
+        default=True,
+        description="If true, greeting_or_tiny without images returns a fixed reply without calling LiteLLM",
+    )
+    greeting_canned_message: str = Field(
+        default="Привет! Чем могу помочь?",
+        min_length=1,
+        description="Assistant text for canned greeting short-circuit",
+    )
+    orchestrator_strip_known_cot_preamble: bool = Field(
+        default=False,
+        description="If true, non-stream responses may strip known CoT preambles from assistant content (last resort)",
+    )
 
     @field_validator("model_roles_path", "role_prompts_path", mode="before")
     @classmethod
@@ -75,6 +88,11 @@ class Settings(BaseSettings):
     @field_validator("orchestrator_public_model_id", mode="after")
     @classmethod
     def strip_public_model_id(cls, v: str) -> str:
+        return v.strip()
+
+    @field_validator("greeting_canned_message", mode="after")
+    @classmethod
+    def strip_canned_message(cls, v: str) -> str:
         return v.strip()
 
 

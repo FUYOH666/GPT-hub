@@ -75,7 +75,7 @@ async def test_non_stream_retries_on_429_then_200():
         trace = json.loads(raw)
         assert trace["orchestrator_fallback"]["retries_after_failure"] == 1
         assert trace["orchestrator_fallback"]["model_selected"] == "gpt-hub-strong"
-        assert trace["prompt_version"] == "v0.5.1"
+        assert trace["prompt_version"] == "v0.5.2"
         assert trace["classifier_source"] == "heuristic"
         assert trace["fallback_used"] is True
         assert trace.get("server_clock_iso")
