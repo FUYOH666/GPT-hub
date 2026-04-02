@@ -78,7 +78,7 @@ chat.example.com {
 
 ### Ограничение: «голый» VPS без Mac
 
-В [docker-compose.yml](../versions_dep/v3/docker-compose.yml) по умолчанию embedding / rerank / STT завязаны на **`host.docker.internal`** (Mac) или на ваши переопределения в `.env`. На VPS без BGE/ASR на том же хосте RAG/STT не заработают, пока не зададите другие URL или не поднимете сервисы там. Текстовый чат через LiteLLM может работать.
+В [docker-compose.yml](../versions_dep/v3/docker-compose.yml) сервис **embedding-shim** поднимается с профилем **`rag`** (`docker compose --profile rag up` или `COMPOSE_PROFILES=rag`); без профиля доступен текстовый чат без индексации RAG. Rerank / STT по-прежнему завязаны на **`host.docker.internal`** (Mac) или переопределения в `.env`. На VPS без BGE/ASR на том же хосте RAG/STT не заработают, пока не зададите другие URL или не поднимете сервисы там.
 
 ---
 

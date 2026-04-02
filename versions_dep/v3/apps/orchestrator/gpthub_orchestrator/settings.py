@@ -84,6 +84,26 @@ class Settings(BaseSettings):
         default=True,
         description="If true, remove reasoning/thinking fields from JSON and stream chunks before the client",
     )
+    ingest_enabled: bool = Field(
+        default=True,
+        description="If true, run perception ingest (PDF/audio) on last user message before routing",
+    )
+    orchestrator_asr_base_url: str | None = Field(
+        default=None,
+        description="OpenAI-compatible ASR base (e.g. http://host.docker.internal:8001/v1); unset skips audio ingest",
+    )
+    orchestrator_asr_api_key: str = Field(
+        default="local-asr",
+        description="Bearer for ASR when orchestrator transcribes audio parts",
+    )
+    orchestrator_asr_model: str = Field(
+        default="cstr/whisper-large-v3-turbo-int8_float32",
+        description="Model id for POST .../audio/transcriptions",
+    )
+    ingest_pdf_max_bytes: int = Field(default=15_000_000, ge=1024, le=50_000_000)
+    ingest_pdf_max_pages: int = Field(default=50, ge=1, le=500)
+    ingest_fetch_max_bytes: int = Field(default=25_000_000, ge=1024, le=100_000_000)
+    ingest_image_fetch_timeout: float = Field(default=60.0, ge=5.0, le=600.0)
 
     @field_validator("model_roles_path", "role_prompts_path", mode="before")
     @classmethod
@@ -102,6 +122,14 @@ class Settings(BaseSettings):
     @classmethod
     def strip_canned_message(cls, v: str) -> str:
         return v.strip()
+
+    @field_validator("orchestrator_asr_base_url", mode="before")
+    @classmethod
+    def empty_asr_url_to_none(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
 
 
 def load_settings() -> Settings:

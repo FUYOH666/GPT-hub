@@ -21,6 +21,9 @@ from gpthub_orchestrator.classifier import classify_messages
             "Объясни в двух предложениях, что такое список в Python.",
             "simple_chat",
         ),
+        ("Привет, какой сегодня день?", "simple_chat"),
+        ("Hi, what day is it?", "simple_chat"),
+        ("привет, что такое список в Python?", "simple_chat"),
         ("Traceback: NameError", "code_help"),
     ],
 )

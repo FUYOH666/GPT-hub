@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI, Request, Response
@@ -17,7 +18,16 @@ logger = logging.getLogger("gpthub_embedding_shim")
 
 UPSTREAM = os.environ.get("BGE_EMBEDDING_UPSTREAM", "http://host.docker.internal:9001").rstrip("/")
 
-app = FastAPI(title="GPTHub embedding OpenAI shim", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    timeout = httpx.Timeout(120.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        app.state.http = client
+        yield
+
+
+app = FastAPI(title="GPTHub embedding OpenAI shim", version="0.1.0", lifespan=lifespan)
 
 
 @app.get("/healthz")
@@ -42,22 +52,24 @@ async def embeddings(request: Request) -> Response:
     body = await request.body()
     auth = request.headers.get("authorization", "")
     url = f"{UPSTREAM}/v1/embeddings"
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        r = await client.post(
-            url,
-            content=body,
-            headers={
-                "Content-Type": request.headers.get("content-type", "application/json"),
-                "Authorization": auth,
-            },
-        )
+    client: httpx.AsyncClient = request.app.state.http
+    r = await client.post(
+        url,
+        content=body,
+        headers={
+            "Content-Type": request.headers.get("content-type", "application/json"),
+            "Authorization": auth,
+        },
+    )
     ct = r.headers.get("content-type", "application/json")
     if r.status_code >= 400 or "json" not in ct.lower():
         logger.warning("upstream_embeddings status=%s", r.status_code)
         return Response(content=r.content, status_code=r.status_code, media_type=ct)
     try:
         payload = r.json()
-    except Exception:
+    except json.JSONDecodeError:
+        preview = r.content[:200].decode("utf-8", errors="replace")
+        logger.warning("upstream_embeddings invalid_json preview=%s", preview)
         return Response(content=r.content, status_code=r.status_code, media_type=ct)
     if isinstance(payload, dict):
         payload = _normalize_payload(payload)

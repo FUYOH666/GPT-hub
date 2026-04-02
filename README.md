@@ -22,6 +22,7 @@
 | [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) | Open WebUI: регистрация, роли, один админ, `WEBUI_URL` |
 | [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md) | Оркестратор: порядок system-промптов (роль GPTHub + клиент) |
 | [docs/DEMO_PROMPTS.md](docs/DEMO_PROMPTS.md) | Готовые запросы для демо и проверки `X-GPTHub-Trace` |
+| [docs/WEBUI-PAYLOAD.md](docs/WEBUI-PAYLOAD.md) | Формат `messages` Open WebUI → оркестратор (ingest PDF/аудио) |
 
 **Архив эксперимента:** [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md) — не отражает текущий v3.
 

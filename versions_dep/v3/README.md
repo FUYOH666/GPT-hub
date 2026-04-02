@@ -12,6 +12,7 @@
 - **Пользователи и роли Open WebUI** (регистрация, один admin, `webui.db`): [../../docs/OPENWEBUI_ROLES.md](../../docs/OPENWEBUI_ROLES.md)
 - **Порядок system-промптов (роль GPTHub + клиент):** [../../docs/PROMPT_PRECEDENCE.md](../../docs/PROMPT_PRECEDENCE.md)
 - **Демо-запросы для жюри / проверка trace:** [../../docs/DEMO_PROMPTS.md](../../docs/DEMO_PROMPTS.md)
+- **Формат `messages` от WebUI (ingest):** [../../docs/WEBUI-PAYLOAD.md](../../docs/WEBUI-PAYLOAD.md)
 
 ## Быстрый старт
 
@@ -19,7 +20,11 @@
 cd versions_dep/v3
 cp .env.example .env
 # Заполните LITELLM_MASTER_KEY, OPENROUTER_API_KEY (как в v2_c2). В .env есть WEBUI_BANNERS — баннер-атрибуция сверху; без строки скопируйте её из .env.example (см. OPENWEBUI_ROLES.md).
+# Только чат (LiteLLM + orchestrator + WebUI): embedding-shim не обязателен.
 docker compose up -d --build
+# RAG в WebUI + embedding-shim: нужен BGE :9001 на хосте, затем:
+# docker compose --profile rag up -d --build
+# либо в .env: COMPOSE_PROFILES=rag
 ```
 
 После **изменений кода оркестратора** (в т.ч. `role_prompts.yaml`, `model_roles.yaml`) пересоберите образ и поднимите сервис:
@@ -40,7 +45,9 @@ docker compose build orchestrator && docker compose up -d orchestrator
 
 **Дата и время («который час», «какой сегодня день»):** оркестратор подмешивает в `system` актуальные дату/время на каждый запрос (`INJECT_REQUEST_DATETIME`, по умолчанию `true`; часовой пояс — `ORCHESTRATOR_CLOCK_TZ`, например `Europe/Moscow`). В trace: `server_clock_iso`. Это не заменяет веб-поиск для новостей. После смены env — `docker compose up -d orchestrator`.
 
-**PDF / вложения в чат (RAG):** сервис **`embedding-shim`** проксирует `POST /v1/embeddings` на BGE на хосте (`BGE_EMBEDDING_UPSTREAM`, по умолчанию `host.docker.internal:9001`) и копирует **`dense_embedding` → `embedding`**, иначе Open WebUI падает с `KeyError: 'embedding'` и оранжевый статус «embedding» не завершается. Нужен запущенный BGE на Mac; без него RAG не заработает.
+**PDF / вложения в чат (RAG):** сервис **`embedding-shim`** (профиль Compose **`rag`**) проксирует `POST /v1/embeddings` на BGE на хосте (`BGE_EMBEDDING_UPSTREAM`, по умолчанию `host.docker.internal:9001`) и копирует **`dense_embedding` → `embedding`**, иначе Open WebUI падает с `KeyError: 'embedding'` и оранжевый статус «embedding» не завершается. Нужен запущенный BGE на Mac; без профиля `rag` чат работает, индексация RAG — нет.
+
+**PDF в сообщении чата (не RAG):** оркестратор может извлечь текст из `file` + `data:application/pdf` и подмешать его в system-контекст (`INGEST_ENABLED`, см. [WEBUI-PAYLOAD.md](../../docs/WEBUI-PAYLOAD.md)).
 
 **Если источник найден, но красная ошибка про `TransferEncodingError` / обрыв stream:** часто это **HTTP 400 от LiteLLM до начала SSE** (раньше — ложный `detect_prompt_injection` на текст из PDF; в `v2_c2/litellm/config.yaml` guardrail отключён) или **таймаут** — поднимите **`LITELLM_TIMEOUT_SECONDS`** (compose / `.env`, по умолчанию 600). Оркестратор при 4xx в stream отдаёт SSE `error` + `[DONE]` вместо обрыва тела.
 

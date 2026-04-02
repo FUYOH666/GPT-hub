@@ -36,6 +36,7 @@ docker compose down
 - `gpthub-v3-litellm`
 - `gpthub-v3-orchestrator`
 - `gpthub-v3-open-webui`
+- `gpthub-v3-embedding-shim` — только с профилем **`rag`** (нужен BGE на хосте :9001)
 
 Запуск:
 
@@ -43,6 +44,7 @@ docker compose down
 cd versions_dep/v3
 cp .env.example .env   # если ещё нет
 docker compose up -d --build
+# С RAG (embedding-shim): docker compose --profile rag up -d --build
 ```
 
 Остановка v3:

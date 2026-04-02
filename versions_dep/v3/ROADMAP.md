@@ -76,36 +76,36 @@
 
 ### 1.1 Контракт входа (обязательно первым)
 
-- [ ] Зафиксировать фактический JSON `messages` от **Open WebUI v0.8.12** для: только текст; PDF; картинка; аудио (лог оркестратора или HAR).
-- [ ] Описать в `docs/WEBUI-PAYLOAD.md` (или раздел README): где лежат `image_url`, `file`, base64, ссылки на файлы WebUI.
+- [x] Зафиксировать фактический JSON `messages` от **Open WebUI v0.8.12** для: только текст; PDF; картинка; аудио (лог оркестратора или HAR).
+- [x] Описать в `docs/WEBUI-PAYLOAD.md` (или раздел README): где лежат `image_url`, `file`, base64, ссылки на файлы WebUI.
 
 ### 1.2 Модуль `ingest/` в orchestrator
 
-- [ ] `gpthub_orchestrator/ingest/models.py` — Pydantic: `RawAttachment`, `NormalizedArtifact` (поля как в ARCHITECTURE).
-- [ ] `extract_openai_parts(messages)` — разбор последнего user message на текст / image_url / (прочие типы по мере обнаружения).
+- [x] Модели артефактов — как словари в trace (`document_text`, `transcript`, …); при необходимости позже вынести в Pydantic `RawAttachment` / `NormalizedArtifact`.
+- [x] Разбор последнего user message: `extract_file_work_items` + `work_item_from_part` (тип `file`, `input_audio` / `audio`, data URL).
 
 ### 1.3 PDF path
 
-- [ ] Зависимость: `pypdf` или `pdfplumber` (через `uv add`).
-- [ ] Функция `parse_pdf_bytes(data) -> str` с лимитом размера и таймаутом; пустой текст → маркер «нужен OCR» в артефакте (реализация OCR — фаза 5).
-- [ ] Юнит-тест: маленький PDF fixture.
+- [x] Зависимость: `pypdf` (через `uv add`).
+- [x] Функция `parse_pdf_bytes(data) -> str` с лимитом размера и числом страниц; пустой текст → маркер «нужен OCR» в артефакте (реализация OCR — фаза 5).
+- [x] Юнит-тест: PDF fixture / blank page.
 
 ### 1.4 Image path
 
-- [ ] Если есть `image_url` (http/data URL) — скачать или декодировать base64; сохранить **краткое описание** либо передать в финальный запрос как multimodal **только если** выбрана vision-модель (согласовать с router: при артефакте `image` → `gpt-hub-vision`).
+- [x] Если есть `image_url` в content — передаётся в LiteLLM как multimodal; роутер при `image` → vision (как в фазе 0).
 - [ ] Опционально (флажок env): один вызов vision-модели «опиши изображение для контекста» → артефакт `image_observation` (текст), финальный запрос — текстовый strong/turbo (дороже по токенам — задокументировать).
 
 ### 1.5 Audio path
 
-- [ ] Настройки: `ASR_BASE_URL`, `ASR_API_KEY`, `ASR_MODEL` (как `AUDIO_STT_*` в v2 — те же семантики).
-- [ ] `transcribe_audio_bytes` → `httpx` POST `.../v1/audio/transcriptions`; артефакт `transcript`.
-- [ ] Интеграционный тест: mock ASR или skip если нет сервиса.
+- [x] Настройки: `ORCHESTRATOR_ASR_BASE_URL`, `ORCHESTRATOR_ASR_API_KEY`, `ORCHESTRATOR_ASR_MODEL` (синхронизированы с compose / ASR на GPU).
+- [x] `transcribe_audio_bytes` → `httpx` POST `.../v1/audio/transcriptions`; артефакт `transcript`.
+- [ ] Интеграционный тест: mock ASR (юнит ASR без live-сервиса — по желанию).
 
 ### 1.6 Параллель + контекст + вызов
 
-- [ ] `asyncio.gather` для независимых вложений одного сообщения.
-- [ ] `build_context_messages(user_messages, artifacts) -> list[dict]` — system block с JSON/markdown артефактов + исходный user query.
-- [ ] Встроить в `main.py` **до** `httpx.post` в LiteLLM; trace дополнить полями `artifacts`, `ingest_ms`.
+- [x] `asyncio.gather` для независимых вложений одного сообщения.
+- [x] Контекст: system-блок «GPTHub ingested context» + урезание обработанных file/audio частей в user content (`run_ingest_pipeline`).
+- [x] Встроить в `main.py` **до** классификации/роутера; trace: `artifacts`, `ingest_ms`.
 - [ ] **Приёмка фазы 1:** вручную — PDF «что здесь?» с `AUTO_ROUTE_MODEL=true` и vision при картинке; в логах полный trace с непустыми `artifacts`.
 
 ---

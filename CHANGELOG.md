@@ -4,6 +4,14 @@
 
 ### Added
 
+- **v3 — ingest (фаза 1) и ops:** модуль [`versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/) (PDF через `pypdf`, аудио через `ORCHESTRATOR_ASR_*` → OpenAI-compatible transcriptions), интеграция в [`main.py`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/main.py), trace `ingest_ms` / `artifacts`; [`GET /readyz`](versions_dep/v3/apps/orchestrator/README.md) (LiteLLM liveliness); [`embedding_shim` lifespan + `JSONDecodeError`](versions_dep/v3/embedding_shim/main.py). Документ [docs/WEBUI-PAYLOAD.md](docs/WEBUI-PAYLOAD.md); [versions_dep/v3/apps/orchestrator/CHANGELOG.md](versions_dep/v3/apps/orchestrator/CHANGELOG.md).
+
+### Changed
+
+- [`versions_dep/v3/docker-compose.yml`](versions_dep/v3/docker-compose.yml) — сервис **`embedding-shim`** только с профилем **`rag`**; WebUI не ждёт shim; см. [versions_dep/v3/README.md](versions_dep/v3/README.md), [.env.example](versions_dep/v3/.env.example), [CONTINUATION.md](versions_dep/v3/CONTINUATION.md).
+
+### Added
+
 - **Open WebUI — атрибуция:** переменная **`WEBUI_BANNERS`** в [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml) и готовая строка в [versions_dep/v3/.env.example](versions_dep/v3/.env.example) (dismissible баннер: Aleksandr Mordvinov / [FUYOH666](https://github.com/FUYOH666)); раздел в [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md), подсказка в [versions_dep/v3/README.md](versions_dep/v3/README.md).
 - **v3 orchestrator — reasoning channel:** классификатор: короткие фразы вроде «как дела?» → `greeting_or_tiny` (canned); `ORCHESTRATOR_REQUEST_REASONING_EXCLUDE` + `ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE`; модуль [`reasoning_response_filter.py`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/reasoning_response_filter.py); stream SSE — построчная фильтрация `data:` JSON. Тесты [`test_reasoning_filter.py`](versions_dep/v3/apps/orchestrator/tests/test_reasoning_filter.py). Доки: OPENWEBUI_ROLES, PROMPT_PRECEDENCE, compose / `.env.example`.
 

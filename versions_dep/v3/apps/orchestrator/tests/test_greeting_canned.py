@@ -141,6 +141,60 @@ async def test_greeting_canned_stream_sse():
 
 
 @pytest.mark.asyncio
+async def test_greeting_plus_date_question_calls_litellm_not_canned():
+    """Bundled greeting + factual question must not use canned (LLM answers with clock)."""
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        body = json.loads(request.content.decode())
+        return httpx.Response(
+            200,
+            json={
+                "id": "1",
+                "object": "chat.completion",
+                "created": 0,
+                "model": body.get("model"),
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {"role": "assistant", "content": "from-upstream"},
+                        "finish_reason": "stop",
+                    }
+                ],
+            },
+        )
+
+    mock_inner = httpx.AsyncClient(transport=httpx.MockTransport(handler), timeout=30.0)
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            app.state.settings = Settings(
+                litellm_base_url="http://litellm.test:4000",
+                orchestrator_api_key="test-key",
+                greeting_canned_response_enabled=True,
+                greeting_canned_message="Hi canned",
+            )
+            app.state.http = mock_inner
+            r = await ac.post(
+                "/v1/chat/completions",
+                headers={"Authorization": "Bearer test-key"},
+                json={
+                    "model": "gpt-hub",
+                    "messages": [{"role": "user", "content": "Привет, какой сегодня день?"}],
+                },
+            )
+        assert r.status_code == 200
+        assert len(calls) == 1
+        assert r.json()["choices"][0]["message"]["content"] == "from-upstream"
+        trace_hdr = r.headers.get("X-GPTHub-Trace")
+        assert trace_hdr
+        trace = json.loads(base64.b64decode(trace_hdr).decode("utf-8"))
+        assert trace.get("canned_response") is not True
+    finally:
+        await mock_inner.aclose()
+
+
+@pytest.mark.asyncio
 async def test_casual_kak_dela_canned_skips_litellm():
     calls: list[str] = []
 

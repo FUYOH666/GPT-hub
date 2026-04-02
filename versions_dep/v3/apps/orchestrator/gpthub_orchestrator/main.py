@@ -31,6 +31,7 @@ from gpthub_orchestrator.reasoning_response_filter import (
     strip_reasoning_from_completion_payload,
 )
 from gpthub_orchestrator.response_preamble_strip import strip_known_cot_preamble
+from gpthub_orchestrator.ingest.pipeline import run_ingest_pipeline
 from gpthub_orchestrator.trace import build_trace, trace_to_header_value
 
 logger = logging.getLogger("gpthub_orchestrator")
@@ -118,6 +119,24 @@ async def healthz() -> dict[str, str]:
     return {"status": "ok", "service": "gpthub-orchestrator"}
 
 
+@app.get("/readyz")
+async def readyz(
+    settings: Settings = Depends(get_settings),
+    http: httpx.AsyncClient = Depends(get_http),
+) -> dict[str, str]:
+    """Readiness: LiteLLM liveliness reachable (no Bearer required)."""
+    url = f"{settings.litellm_base_url.rstrip('/')}/health/liveliness"
+    try:
+        r = await http.get(url, timeout=httpx.Timeout(5.0, connect=2.0))
+    except httpx.HTTPError:
+        logger.exception("readyz_litellm_unreachable")
+        raise HTTPException(status_code=503, detail="LiteLLM unreachable") from None
+    if r.status_code >= 400:
+        logger.warning("readyz_litellm_bad_status %s", r.status_code)
+        raise HTTPException(status_code=503, detail="LiteLLM not ready")
+    return {"status": "ready", "service": "gpthub-orchestrator", "litellm": "ok"}
+
+
 @app.get("/v1/models")
 async def openai_list_models(
     request: Request,
@@ -172,9 +191,12 @@ async def chat_completions(
     if not isinstance(messages, list):
         raise HTTPException(status_code=400, detail="messages must be a list")
 
+    ingested, ingest_artifacts, ingest_ms = await run_ingest_pipeline(messages, settings, http)
+    body["messages"] = ingested
+
     map_facade_model_to_litellm(body, settings)
 
-    classification = classify_messages(messages)
+    classification = classify_messages(body["messages"])
     router_suggestion = choose_model(classification, settings)
     clock_prefix, server_clock_iso = build_session_clock_block(settings)
 
@@ -187,11 +209,12 @@ async def chat_completions(
             classification=classification,
             router_suggestion=router_suggestion,
             model_used=model_vis,
-            artifacts=[],
+            artifacts=ingest_artifacts,
             prompt_version=prompt_version,
             classifier_source="heuristic",
             server_clock_iso=server_clock_iso,
             canned_response=True,
+            ingest_ms=ingest_ms,
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
         trace_hdr = trace_to_header_value(trace)
@@ -213,7 +236,7 @@ async def chat_completions(
     role_prompts = load_role_prompts(settings.role_prompts_path)
     role_key = str(router_suggestion["model_role"])
     body["messages"] = apply_role_system_messages(
-        list(messages),
+        list(body["messages"]),
         role_key,
         role_prompts,
         session_clock_prefix=clock_prefix,
@@ -246,11 +269,12 @@ async def chat_completions(
             classification=classification,
             router_suggestion=router_suggestion,
             model_used=str(body.get("model", model_used)),
-            artifacts=[],
+            artifacts=ingest_artifacts,
             orchestrator_fallback=stream_fb,
             prompt_version=prompt_version,
             classifier_source="heuristic",
             server_clock_iso=server_clock_iso,
+            ingest_ms=ingest_ms,
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
 
@@ -339,10 +363,11 @@ async def chat_completions(
             classification=classification,
             router_suggestion=router_suggestion,
             model_used=model_used,
-            artifacts=[],
+            artifacts=ingest_artifacts,
             prompt_version=prompt_version,
             classifier_source="heuristic",
             server_clock_iso=server_clock_iso,
+            ingest_ms=ingest_ms,
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
         resp = await http.post(url, json=body, headers={"Authorization": auth_header})
@@ -380,11 +405,12 @@ async def chat_completions(
                 classification=classification,
                 router_suggestion=router_suggestion,
                 model_used=winning_model,
-                artifacts=[],
+                artifacts=ingest_artifacts,
                 orchestrator_fallback=fb_meta,
                 prompt_version=prompt_version,
                 classifier_source="heuristic",
                 server_clock_iso=server_clock_iso,
+                ingest_ms=ingest_ms,
             )
             logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
             out = resp.json()
@@ -416,11 +442,12 @@ async def chat_completions(
         classification=classification,
         router_suggestion=router_suggestion,
         model_used=winning_model,
-        artifacts=[],
+        artifacts=ingest_artifacts,
         orchestrator_fallback=fb_meta,
         prompt_version=prompt_version,
         classifier_source="heuristic",
         server_clock_iso=server_clock_iso,
+        ingest_ms=ingest_ms,
     )
     logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
     logger.warning("litellm_error %s %s", last_resp.status_code, last_resp.text[:500])

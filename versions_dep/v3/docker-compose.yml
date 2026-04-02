@@ -65,6 +65,10 @@ services:
       ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE: ${ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE:-false}
       ORCHESTRATOR_REQUEST_REASONING_EXCLUDE: ${ORCHESTRATOR_REQUEST_REASONING_EXCLUDE:-true}
       ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE: ${ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE:-true}
+      INGEST_ENABLED: ${INGEST_ENABLED:-true}
+      ORCHESTRATOR_ASR_BASE_URL: ${ORCHESTRATOR_ASR_BASE_URL:-http://host.docker.internal:8001/v1}
+      ORCHESTRATOR_ASR_API_KEY: ${ORCHESTRATOR_ASR_API_KEY:-local-asr}
+      ORCHESTRATOR_ASR_MODEL: ${ORCHESTRATOR_ASR_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
     depends_on:
       litellm:
         condition: service_healthy
@@ -82,7 +86,10 @@ services:
       start_period: 15s
 
   # BGE hybrid отдаёт dense_embedding; Open WebUI RAG ждёт поле embedding (OpenAI).
+  # Профиль `rag`: без него стек поднимается без shim (чат без RAG). С профилем — как раньше.
   embedding-shim:
+    profiles:
+      - rag
     build:
       context: ./embedding_shim
       dockerfile: Dockerfile
@@ -156,8 +163,6 @@ services:
       litellm:
         condition: service_healthy
       orchestrator:
-        condition: service_healthy
-      embedding-shim:
         condition: service_healthy
     networks:
       - gpthub-v3-net

@@ -57,11 +57,35 @@ _CASUAL_SMALL_TALK_ONLY = re.compile(
     re.IGNORECASE | re.UNICODE,
 )
 
+# Date/time / calendar questions — canned short-circuit cannot answer these
+_SUBSTANTIVE_FACTUAL_QUESTION = re.compile(
+    r"какой\s+(сегодня\s+)?(день|день\s+недели|число|месяц|год)\b|"
+    r"какое\s+(сегодня\s+)?(число|время)\b|"
+    r"какая\s+(сегодня\s+)?дата\b|"
+    r"который\s+час\b|"
+    r"сколько\s+времени\b|"
+    r"what\s+day\b|"
+    r"what'?s\s+the\s+(date|time)\b|"
+    r"what\s+(is\s+)?the\s+date\b|"
+    r"what\s+time\b|"
+    r"which\s+day\b",
+    re.IGNORECASE | re.UNICODE,
+)
+
 
 def _is_greeting_or_tiny(text: str) -> bool:
     s = text.strip()
     if not s:
         return False
+    # Greeting prefix + real question → not tiny (canned would ignore the question)
+    if "?" in s:
+        m = _GREETING_START.match(s)
+        if m:
+            if _SUBSTANTIVE_FACTUAL_QUESTION.search(s):
+                return False
+            tail = s[m.end() :].strip()
+            if tail and len(tail) > 12 and "?" in tail:
+                return False
     if s.lower().rstrip("!.… ") in _ACK_PHRASES:
         return True
     if len(s) <= 80 and bool(_CASUAL_SMALL_TALK_ONLY.match(s)):
