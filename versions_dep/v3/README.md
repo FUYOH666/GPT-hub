@@ -18,7 +18,7 @@
 ```bash
 cd versions_dep/v3
 cp .env.example .env
-# Заполните LITELLM_MASTER_KEY, OPENROUTER_API_KEY (как в v2_c2)
+# Заполните LITELLM_MASTER_KEY, OPENROUTER_API_KEY (как в v2_c2). В .env есть WEBUI_BANNERS — баннер-атрибуция сверху; без строки скопируйте её из .env.example (см. OPENWEBUI_ROLES.md).
 docker compose up -d --build
 ```
 

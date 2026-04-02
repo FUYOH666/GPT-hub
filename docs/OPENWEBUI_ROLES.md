@@ -20,10 +20,19 @@
 | `DEFAULT_MODELS` | По умолчанию **`gpt-hub`** — публичный фасад; должен совпадать с `ORCHESTRATOR_PUBLIC_MODEL_ID` у сервиса **orchestrator** |
 | `DEFAULT_PINNED_MODELS` | Обычно тот же **`gpt-hub`** (одна строка в селекторе) |
 | `TASK_MODEL_EXTERNAL` | По умолчанию **`gpt-hub`** — вспомогательные задачи UI используют тот же фасад |
+| `WEBUI_BANNERS` | JSON-массив баннеров ([формат в исходниках Open WebUI v0.8.12](https://github.com/open-webui/open-webui/blob/v0.8.12/backend/open_webui/config.py) — поля `id`, `type`, `content`, `dismissible`, `timestamp`; `title` опционально). Показывается **полосой сверху** (отдельного футера в стоковом UI нет); `dismissible: true` — пользователь может закрыть. Готовая строка — в **`versions_dep/v3/.env.example`**: скопируйте в свой **`.env`** и пересоздайте `open-webui`. Отключить: `WEBUI_BANNERS='[]'`. Это **PersistentConfig**: после первого старта значение может сохраниться в `webui.db`; смена через env / см. `ENABLE_PERSISTENT_CONFIG` или **Admin → Interface**. |
 
 Переменные **orchestrator** (в compose / `.env` рядом с v3): `ORCHESTRATOR_MODELS_CATALOG` (`single_public` \| `all`), `ORCHESTRATOR_PUBLIC_MODEL_ID` (по умолчанию `gpt-hub`). Режим **`all`** снова показывает все алиасы LiteLLM в WebUI (для разработки).
 
 После правок: `docker compose up -d --force-recreate open-webui` (из каталога `versions_dep/v3`).
+
+### Атрибуция / «кто собрал» (gpt-hub)
+
+В стоковом Open WebUI **нет отдельной строки футера** под главным экраном. Практичные варианты:
+
+1. **`WEBUI_BANNERS`** — компактная полоска **над** интерфейсом с текстом и ссылкой (см. таблицу выше и `versions_dep/v3/.env.example`).
+2. **`WEBUI_NAME`** — имя в шапке/вкладке (у вас уже **gpt-hub**); можно сделать длиннее, но это менее аккуратно.
+3. Кастомный **лендинг** с кредитом (отдельный сайт) + ссылка на чат — см. [TEAM_PUBLIC_ACCESS.md](TEAM_PUBLIC_ACCESS.md).
 
 ## Reasoning / «Рассуждение заняло N сек»
 

@@ -150,6 +150,8 @@ services:
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-tavily}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      # Баннер атрибуции — задайте в .env (см. .env.example). Пустая переменная → WebUI использует [].
+      WEBUI_BANNERS: ${WEBUI_BANNERS:-}
     depends_on:
       litellm:
         condition: service_healthy
