@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Доки: убраны конкретные домены витрины из [TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md); handoff для внешнего репо — [AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) (вместо удалённого `AGENT_HANDOFF_SCANOVICH.md`); обновлены [README.md](README.md), [AGENTS.md](AGENTS.md).
+
 ### Added
 
 - **[LICENSE](LICENSE)** (MIT) и **[SECURITY.md](SECURITY.md)**; в [README.md](README.md) — ссылки, разделение MIT vs положение хакатона / MWS.
@@ -29,7 +33,7 @@
 - [AUTHORS.md](AUTHORS.md) — авторство (Aleksandr Mordvinov / [@FUYOH666](https://github.com/FUYOH666)); раздел в [README.md](README.md); поля `authors` / `[project.urls]` в [versions_dep/v3/apps/orchestrator/pyproject.toml](versions_dep/v3/apps/orchestrator/pyproject.toml).
 - [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) — приватный репозиторий GitHub (`gh repo create` или веб + `git push`).
 - [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — публичный HTTPS для Open WebUI (VPS / туннель), `WEBUI_URL`, WebSocket/SSE, чеклист безопасности, ограничения RAG/ASR на VPS.
-- [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) и корневой [AGENTS.md](AGENTS.md) — краткий handoff для агента другого репозитория.
+- [docs/AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) и корневой [AGENTS.md](AGENTS.md) — краткий handoff для агента другого репозитория.
 - [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md) — архив бывшего `readme.md` v1_z; актуальный стек описан в v3.
 - **v3 orchestrator — фаза 0.5 (реализация):** [role_prompts.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/role_prompts.yaml), [role_prompts.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/role_prompts.py), [messages.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/messages.py); trace: `prompt_version`, `task_type`, `selected_model`, `fallback_used`, `classifier_source`, `attachments_detected`; `ROLE_PROMPTS_PATH`; валидация полноты ролей в [model_registry.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/model_registry.py); тесты golden + trace; [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md), [docs/DEMO_PROMPTS.md](docs/DEMO_PROMPTS.md).
 
@@ -49,7 +53,7 @@
 - [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) — `ENABLE_PERSISTENT_CONFIG` и блок «Нет ссылки регистрации на странице входа» (UI vs env).
 - [versions_dep/v3/.env.example](versions_dep/v3/.env.example), [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — режим admin + саморегистрация с `DEFAULT_USER_ROLE=user` vs `pending`.
 - [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) — раздел «Пошагово в Zero Trust»: Published application, Service URL `:3000`, CNAME, `WEBUI_URL`, 502/521.
-- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — отсылка на чеклист после маршрута; ранее: Mac + туннель + Tailscale, VPS, канон; ссылки в README / AGENTS / AGENT_HANDOFF.
+- [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) — отсылка на чеклист после маршрута; ранее: Mac + туннель + Tailscale, VPS, канон; ссылки в README / AGENTS / AGENT_HANDOFF_EXTERNAL_REPO.
 - [versions_dep/v3/.env.example](versions_dep/v3/.env.example) — `WEBUI_URL`, `OR_SITE_URL`, `ENABLE_SIGNUP`, Tailscale для ASR / instruct / опционально rerank.
 - [README.md](README.md) — таблица документов, быстрый старт с **v3** первично; v2_c2 как эталон LiteLLM и заморозка.
 - [versions_dep/v2_c2/ROADMAP.md](versions_dep/v2_c2/ROADMAP.md) — сокращён до отсылки на [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).

@@ -15,7 +15,7 @@
 | [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md) | Питч, сценарий демо, сдача на Платформу |
 | [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (Mac+туннель или VPS), прокси WS/SSE, безопасность; витрина — отдельный репо сайта |
 | [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) | Текст задачи для человека с доступом к Cloudflare (Tunnel → `localhost:3000`) |
-| [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) | Краткий контекст для агента другого проекта (например Scanovich) |
+| [docs/AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) | Краткий контекст для агента другого репо / витрины |
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |
 | [LICENSE](LICENSE) | Лицензия MIT (код репозитория) |
@@ -45,7 +45,7 @@
 
 ## Доступ команды в интернете
 
-Единый гайд по деплою WebUI: **[docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md)** (поддомен или туннель, `WEBUI_URL`, WS/SSE и длинные таймауты, не публиковать `:4000`/`:8089`). Ссылка с лендинга (например Scanovich) ведёт на уже поднятый чат; оформление пути на сайте — в репозитории витрины, не здесь.
+Единый гайд по деплою WebUI: **[docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md)** (поддомен или туннель, `WEBUI_URL`, WS/SSE и длинные таймауты, не публиковать `:4000`/`:8089`). Ссылка с лендинга ведёт на уже поднятый чат; оформление пути на сайте — в репозитории витрины, не здесь.
 
 ## Авторство
 

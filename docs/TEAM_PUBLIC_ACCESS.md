@@ -2,7 +2,7 @@
 
 **Канонический документ репозитория GPT-hub** по тому, *как* вынести Open WebUI в интернет (TLS, прокси, `WEBUI_URL`, таймауты, безопасность). Копировать ссылку на этот файл в другие репо и планы деплоя.
 
-**Витрина и «красивый путь»** (лендинг, редирект на чат) живут в проекте сайта (например **website-scanovich.ai** / [app.scanovich.ai](https://app.scanovich.ai/)). Здесь — **исполнение стека**: Docker, env, reverse proxy / туннель к `:3000`.
+**Витрина и «красивый путь»** (лендинг, редирект на чат) обычно живут в **отдельном репозитории** вашего сайта. Здесь — **исполнение стека**: Docker, env, reverse proxy / туннель к `:3000`.
 
 Цель: открыть **только** интерфейс чата по **HTTPS**, не светя в интернет лишние порты (LiteLLM `:4000`, orchestrator `:8089`) и не кладя секреты в git.
 
@@ -95,6 +95,6 @@ chat.example.com {
 
 Детали: [versions_dep/v3/README.md](../versions_dep/v3/README.md), [versions_dep/v3/.env.example](../versions_dep/v3/.env.example), роли и один админ: [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md).
 
-## Связь с отдельным продуктом (например Scanovich)
+## Связь с отдельным продуктом / витриной
 
-Streamlit и Open WebUI — разные процессы; на лендинге — ссылка на URL чата. Handoff для другого репо: [AGENT_HANDOFF_SCANOVICH.md](AGENT_HANDOFF_SCANOVICH.md).
+Клиентский UI лендинга и Open WebUI — разные процессы; на лендинге — ссылка на URL чата. Handoff для агента из другого репо: [AGENT_HANDOFF_EXTERNAL_REPO.md](AGENT_HANDOFF_EXTERNAL_REPO.md).
