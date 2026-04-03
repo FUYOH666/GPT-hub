@@ -191,6 +191,19 @@
 
 ---
 
+## LiteLLM / OpenRouter: идеи развития (бэклог)
+
+Не блокируют текущий MVP; полезно для устойчивости и экономии на free-tier.
+
+- [x] **Подсказка цепочки vision:** `list_free_models --suggest-vision-chain` (эвристика: не-Google раньше, крупнее контекст) + YAML-черновик; merge в `config.yaml` вручную после ревью.
+- [ ] **Авто-актуализация** в CI или scheduled job (тот же API + diff/алерт, без silent merge).
+- [ ] **Умнее fallback:** не только фиксированные цепочки в LiteLLM, а учёт латентности/429, опционально метрики в trace.
+- [ ] **Цена / качество / латентность:** эвристика или таблица приоритетов по `task_type` и доступности моделей (без скрытых фоллбеков — всё в конфиге и логах).
+
+Текущая схема алиасов и env: [../v2_c2/litellm/config.yaml](../v2_c2/litellm/config.yaml), [apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml](apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml).
+
+---
+
 ## Адаптация под модели организатора (после публикации задачи)
 
 **Вход:** официальные ограничения кейса MWS GPT / True Tech Hack 2026 — список моделей, API, ключи (см. дату публикации в [README.md](../../README.md)).

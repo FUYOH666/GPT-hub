@@ -93,7 +93,7 @@ Open WebUI шлёт аудио на **OpenAI-compatible** endpoint `POST …/v1/
 | `AUDIO_STT_ENGINE` | `openai` — внешний Whisper-совместимый endpoint |
 | `AUDIO_STT_OPENAI_API_BASE_URL` | База с **`/v1`**, по умолчанию `http://host.docker.internal:8001/v1` |
 | `AUDIO_STT_OPENAI_API_KEY` | Заголовок `Authorization` (если ASR без auth — оставьте `local-asr`) |
-| `AUDIO_STT_MODEL` | Имя модели на стороне ASR, по умолчанию `cstr/whisper-large-v3-turbo-int8_float32` |
+| `AUDIO_STT_MODEL` | Id модели на стороне ASR (OpenAI-compatible); дефолт в compose `whisper-1`, в проде задайте в `.env` по документации вашего сервера |
 | `AUDIO_STT_SUPPORTED_CONTENT_TYPES` | По умолчанию в compose: `audio/*,video/webm` (как дефолт Open WebUI при пустом списке) |
 
 **Сеть:** с контейнера должен открываться **тот же хост:порт**, что в `AUDIO_STT_OPENAI_API_BASE_URL`. На многих машинах с Tailscale контейнер Open WebUI **достучится до TailScale IP** GPU-сервера — тогда в **локальном** `.env` задайте `LOCAL_AI_ASR_BASE_URL` и `AUDIO_STT_OPENAI_API_BASE_URL=…/v1` (хост из скилла `remote-asr-service`, без коммита в git). Если из контейнера 100.x недоступен, используйте проброс `ssh -L 8001:127.0.0.1:8001 …` и вариант `host.docker.internal:8001/v1` из compose по умолчанию.
@@ -110,7 +110,7 @@ Open WebUI шлёт аудио на **OpenAI-compatible** endpoint `POST …/v1/
 
 [Free Models Router](https://openrouter.ai/docs/guides/routing/routers/free-models-router) (`openrouter/free`) на стороне OpenRouter подбирает free-модель под запрос. В связке **LiteLLM Proxy + `openrouter/free`** у нас встречались ответы **502** (провайдер Stealth / `Invalid URL`), поэтому в конфиге заданы **явные** `openrouter/…:free` slug’и.
 
-В `litellm/config.yaml` заданы **два** алиаса под [free-модели OpenRouter](https://openrouter.ai/models?pricing=free); slug’и меняются — при 404/502 проверьте актуальные id. У **Qwen3.6 Plus (free)** в карточке модели указан сбор данных промптов для обучения — учитывайте для чувствительных данных.
+В `litellm/config.yaml` заданы **цепочка vision** (`gpt-hub-vision` … `gpt-hub-vision-4`) и **`gpt-hub-fallback`** под [free-модели OpenRouter](https://openrouter.ai/models?pricing=free); slug’и меняются — при 404/429/502 перепроверьте id (из v3: `uv run python -m gpthub_orchestrator.tools.list_free_models --suggest-vision-chain`). Цепочка **не** уводит vision на локальный текстовый instruct (иначе 400 «not multimodal»). У **Qwen3.6 Plus (free)** в карточке модели указан сбор данных промптов для обучения — учитывайте для чувствительных данных.
 
 ## OpenRouter (локальный тест)
 

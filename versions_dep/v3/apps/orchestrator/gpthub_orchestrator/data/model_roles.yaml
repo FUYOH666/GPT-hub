@@ -21,6 +21,9 @@ roles:
   vision_general:
     aliases:
       - gpt-hub-vision
+      - gpt-hub-vision-2
+      - gpt-hub-vision-3
+      - gpt-hub-vision-4
       - gpt-hub-fallback
   doc_synthesis:
     aliases:

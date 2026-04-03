@@ -80,7 +80,7 @@ services:
       AUDIO_STT_ENGINE: ${AUDIO_STT_ENGINE:-openai}
       AUDIO_STT_OPENAI_API_BASE_URL: ${AUDIO_STT_OPENAI_API_BASE_URL:-http://host.docker.internal:8001/v1}
       AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
-      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
+      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-whisper-1}
       # Те же типы, что по умолчанию в Open WebUI при пустом списке (strict_match_mime_type → audio/*, video/webm)
       AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
     depends_on:

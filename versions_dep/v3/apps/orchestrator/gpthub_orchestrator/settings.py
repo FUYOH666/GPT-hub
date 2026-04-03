@@ -97,8 +97,8 @@ class Settings(BaseSettings):
         description="Bearer for ASR when orchestrator transcribes audio parts",
     )
     orchestrator_asr_model: str = Field(
-        default="cstr/whisper-large-v3-turbo-int8_float32",
-        description="Model id for POST .../audio/transcriptions",
+        default="whisper-1",
+        description="Model id for POST .../audio/transcriptions (override in .env to match your ASR server)",
     )
     ingest_pdf_max_bytes: int = Field(default=15_000_000, ge=1024, le=50_000_000)
     ingest_pdf_max_pages: int = Field(default=50, ge=1, le=500)

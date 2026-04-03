@@ -4,11 +4,18 @@
 
 ### Changed
 
+- Репозиторий **публичный** на GitHub; краткое описание репозитория обновлено.
+- **ASR / STT:** дефолтный id модели в репозитории заменён на нейтральный `whisper-1` (внутренние slug’и ASR — только в локальном `.env`). Затронуты [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml), [settings.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/settings.py), v2_c2 compose, `.env.example`, [v2_c2/README.md](versions_dep/v2_c2/README.md).
+- **LiteLLM / OpenRouter vision:** [versions_dep/v2_c2/litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml) — цепочка `gpt-hub-vision` … `gpt-hub-vision-4` + `gpt-hub-fallback` (Qwen / NVIDIA / Gemma); убран fallback `gpt-hub-fallback` → локальный Qwen (исправление 400 «not multimodal» при картинках). `num_retries: 3`. [model_roles.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml) — расширен `vision_general`. Доки: [versions_dep/v3/README.md](versions_dep/v3/README.md), [versions_dep/v2_c2/README.md](versions_dep/v2_c2/README.md), [ROADMAP](versions_dep/v3/ROADMAP.md).
+- **Позиционирование как публичный hackathon starter:** [README.md](README.md) — якорь аудитории, блоки «Статус» и «Идеи для улучшения», смягчённый шаг 1 быстрого старта (ТЗ только с площадки); в таблице документов — [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md), пометки *опционально* для [CONSTRUCTOR.md](CONSTRUCTOR.md) и [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md). [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) — раздел «LiteLLM / OpenRouter: идеи развития».
 - [README.md](README.md) — раздел «Зачем репозиторий открыт»: контекст хакатона, прототип (OpenRouter/OSS), акцент на команде и процессе, приглашение к форкам.
 - Доки: убраны конкретные домены витрины из [TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md); handoff для внешнего репо — [AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) (вместо удалённого `AGENT_HANDOFF_SCANOVICH.md`); обновлены [README.md](README.md), [AGENTS.md](AGENTS.md).
 
 ### Added
 
+- [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), шаблоны [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) и [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
+- Оркестратор: `python -m gpthub_orchestrator.tools.list_free_models --suggest-vision-chain` — эвристика порядка free+image и YAML-черновик для `litellm/config.yaml`; тесты [test_list_free_models.py](versions_dep/v3/apps/orchestrator/tests/test_list_free_models.py).
+- [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) — чеклист для форка: env, compose, модели (`litellm/config.yaml`), официальное ТЗ, ссылки на TEAM_PUBLIC_ACCESS и PITCH-DEMO.
 - **[LICENSE](LICENSE)** (MIT) и **[SECURITY.md](SECURITY.md)**; в [README.md](README.md) — ссылки, разделение MIT vs положение хакатона / MWS.
 - **v3 — ingest (фаза 1) и ops:** модуль [`versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/) (PDF через `pypdf`, аудио через `ORCHESTRATOR_ASR_*` → OpenAI-compatible transcriptions), интеграция в [`main.py`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/main.py), trace `ingest_ms` / `artifacts`; [`GET /readyz`](versions_dep/v3/apps/orchestrator/README.md) (LiteLLM liveliness); [`embedding_shim` lifespan + `JSONDecodeError`](versions_dep/v3/embedding_shim/main.py). Документ [docs/WEBUI-PAYLOAD.md](docs/WEBUI-PAYLOAD.md); [versions_dep/v3/apps/orchestrator/CHANGELOG.md](versions_dep/v3/apps/orchestrator/CHANGELOG.md).
 
@@ -18,7 +25,7 @@
 
 - [`versions_dep/v3/docker-compose.yml`](versions_dep/v3/docker-compose.yml) — **`litellm`**: `extra_hosts` + дефолт **`LLM_INSTRUCT_API_BASE`** (`host.docker.internal:8002/v1`); сервис **`embedding-shim`** только с профилем **`rag`**; WebUI не ждёт shim; см. [versions_dep/v3/README.md](versions_dep/v3/README.md), [.env.example](versions_dep/v3/.env.example), [CONTINUATION.md](versions_dep/v3/CONTINUATION.md).
 - [docs/reviews/2026-04-02-multi-version-audit.md](docs/reviews/2026-04-02-multi-version-audit.md) — актуализация (ingest, профиль `rag`, shim client).
-- **v3 — мало OpenRouter:** [`versions_dep/v2_c2/litellm/config.yaml`](versions_dep/v2_c2/litellm/config.yaml) — все текстовые алиасы на локальный instruct (`LLM_INSTRUCT_API_BASE`); OpenRouter free — **`gpt-hub-vision`** и **`gpt-hub-fallback`**. [`model_roles.yaml`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml), `default_text_model` → **`gpt-hub-turbo`**; доки [.env.example](versions_dep/v3/.env.example), [versions_dep/v3/README.md](versions_dep/v3/README.md).
+- **v3 — мало OpenRouter:** [`versions_dep/v2_c2/litellm/config.yaml`](versions_dep/v2_c2/litellm/config.yaml) — текстовые алиасы на локальный instruct; OpenRouter free — vision-цепочка и **`gpt-hub-fallback`** (актуальная схема см. тот же файл и README v3). [`model_roles.yaml`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml), `default_text_model` → **`gpt-hub-turbo`**; доки [.env.example](versions_dep/v3/.env.example), [versions_dep/v3/README.md](versions_dep/v3/README.md).
 
 ### Added
 

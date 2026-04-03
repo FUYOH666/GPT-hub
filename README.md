@@ -1,6 +1,20 @@
 # GPTHub
 
-Репозиторий под **МТС True Tech Hack 2026**, кейс **MWS GPT**: единый чат с мультимодальным вводом, маршрутизацией моделей и памятью/RAG — сборка из готовых OSS-слоёв и тонкая доработка.
+**Стартовая точка** для сборки хакатонного или учебного стека «чат + маршрутизация моделей + RAG»: можно **форкнуть** и подставить свой кейс. Официальное **ТЗ конкретной площадки** всегда сверяйте отдельно после публикации ([True Tech Arena](https://truetecharena.ru/) и т.п.) — этот репозиторий — **заготовка и идеи**, не обещание совпадения с финальными ограничениями жюри.
+
+Изначально ориентир — **МТС True Tech Hack 2026**, кейс **MWS GPT**: единый чат с мультимодальным вводом, маршрутизацией моделей и памятью/RAG — сборка из готовых OSS-слоёв и тонкая доработка (оркестратор).
+
+## Статус
+
+**Исследовательский прототип:** несколько быстрых итераций за короткий спринт, не «финальный продукт соревнования». Текущий компромисс — **локальный instruct** (если есть GPU за gateway) + **OpenRouter** для vision и резервных текстовых вызовов где настроено (см. [versions_dep/v2_c2/litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml), [versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml)). Очередность фаз и бэклог: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
+
+## Идеи для улучшения (кратко)
+
+- Авто-актуализация списка **бесплатных** моделей у провайдера (например OpenRouter).
+- Более **умный fallback** при 429/недоступности upstream.
+- Выбор или ранжирование моделей по **цена / качество / латентность** под тип задачи.
+
+Детали и другие направления: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) (раздел «LiteLLM / OpenRouter: идеи развития»).
 
 ## Зачем репозиторий открыт
 
@@ -8,26 +22,29 @@
 
 От хакатона осталось и другое наблюдение: формат во многом проверяет не «кто глубже в коде или архитектуре», а умение **организовать людей** — роли, коммуникация, договорённости, удержание процесса к дедлайну. Сам репозиторий тогда — честный **артефакт процесса**, а не мера «уникальности идеи».
 
-Если этот слепок кому-то сэкономит время на сборке похожего стека или даст опору для своей команды — смысл публичности уже есть. **Форкайте и используйте**; претензий на монополию на «правильный» хакатонный код здесь нет.
+Если этот слепок кому-то сэкономит время на сборке похожего стека или даст опору для своей команды — смысл публичности уже есть. **Форкайте и используйте**; претензий на монополию на «правильный» хакатонный код здесь нет. Это **шаблон идей и рабочий код**, а не замена официальному регламенту площадки без вашей проверки.
 
 ## Документация (карта)
 
 | Документ | Назначение |
 |----------|------------|
 | [README.md](README.md) | Точка входа в репозиторий (этот файл) |
+| [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) | **Чеклист** для форка: env, compose, модели, ТЗ площадки |
 | [versions_dep/v3/README.md](versions_dep/v3/README.md) | **Актуальный запуск Docker**, переменные, troubleshooting |
 | [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md) | Архитектура v3: WebUI → orchestrator → LiteLLM |
 | [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) | Бэклог и фазы разработки |
 | [versions_dep/v3/CONTINUATION.md](versions_dep/v3/CONTINUATION.md) | Handoff для нового чата: Docker v2↔v3, промпт |
-| [CONSTRUCTOR.md](CONSTRUCTOR.md) | Конструктор: build/buy, OSS, риски, сроки хакатона |
-| [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md) | Питч, сценарий демо, сдача на Платформу |
-| [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (Mac+туннель или VPS), прокси WS/SSE, безопасность; витрина — отдельный репо сайта |
+| [CONSTRUCTOR.md](CONSTRUCTOR.md) | *Опционально для конкурса:* build/buy, OSS, риски, сроки |
+| [docs/PITCH-DEMO.md](docs/PITCH-DEMO.md) | *Опционально для сдачи:* питч, сценарий демо, платформа |
+| [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (туннель или VPS), прокси WS/SSE, безопасность; витрина — отдельный репо сайта |
 | [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) | Текст задачи для человека с доступом к Cloudflare (Tunnel → `localhost:3000`) |
 | [docs/AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) | Краткий контекст для агента другого репо / витрины |
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |
 | [LICENSE](LICENSE) | Лицензия MIT (код репозитория) |
 | [SECURITY.md](SECURITY.md) | Как сообщать о уязвимостях |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Как предлагать изменения, pytest, Docker |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Правила общения в issues и PR |
 | [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) | Создать приватный репозиторий на GitHub и первый push |
 | [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) | Open WebUI: регистрация, роли, один админ, `WEBUI_URL` |
 | [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md) | Оркестратор: порядок system-промптов (роль GPTHub + клиент) |
@@ -42,7 +59,7 @@
 
 Активная разработка ведётся в **v3** (orchestrator + тот же `litellm/config.yaml`, что и у v2).
 
-1. Уточнить **Задачу** на [truetecharena.ru](https://truetecharena.ru/) после **10.04.2026 12:00** (ограничения кейса MWS GPT).
+1. **Официальную задачу** кейса уточните на площадке соревнования (для MWS GPT см. [truetecharena.ru](https://truetecharena.ru/) — дата публикации ограничений может быть позже старта репо).
 2. Перейти в [versions_dep/v3](versions_dep/v3): `cp .env.example` → `.env`, заполнить переменные (см. [v3/README.md](versions_dep/v3/README.md)).
 3. `docker compose up -d --build`
 
@@ -62,5 +79,7 @@
 ## Лицензия и вклад
 
 Исходный код в этом репозитории (оркестратор, доки, скрипты интеграции) распространяется по лицензии **[MIT](LICENSE)**. Сторонние OSS-компоненты (Open WebUI, LiteLLM и др.) — по их лицензиям.
+
+PR и идеи — см. [CONTRIBUTING.md](CONTRIBUTING.md); тон общения — [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 Участие в **МТС True Tech Hack / кейс MWS GPT:** права на результат соревнования и передача прав призёрам — по [положению хакатона](https://truetechhack.ru); при расхождении с MIT для конкретной поставки уточнить у организаторов. Сообщения об уязвимостях: [SECURITY.md](SECURITY.md).

@@ -72,7 +72,7 @@ services:
       INGEST_ENABLED: ${INGEST_ENABLED:-true}
       ORCHESTRATOR_ASR_BASE_URL: ${ORCHESTRATOR_ASR_BASE_URL:-http://host.docker.internal:8001/v1}
       ORCHESTRATOR_ASR_API_KEY: ${ORCHESTRATOR_ASR_API_KEY:-local-asr}
-      ORCHESTRATOR_ASR_MODEL: ${ORCHESTRATOR_ASR_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
+      ORCHESTRATOR_ASR_MODEL: ${ORCHESTRATOR_ASR_MODEL:-whisper-1}
     depends_on:
       litellm:
         condition: service_healthy
@@ -155,7 +155,7 @@ services:
       AUDIO_STT_ENGINE: ${AUDIO_STT_ENGINE:-openai}
       AUDIO_STT_OPENAI_API_BASE_URL: ${AUDIO_STT_OPENAI_API_BASE_URL:-http://host.docker.internal:8001/v1}
       AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
-      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-cstr/whisper-large-v3-turbo-int8_float32}
+      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-whisper-1}
       AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
       # Веб-поиск (Tavily): по умолчанию включён; без TAVILY_API_KEY в .env поиск может падать в UI
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
