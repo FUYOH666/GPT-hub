@@ -25,7 +25,7 @@
 - **Orchestrator** ([main.py](../../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/main.py)): JSON body валидируется; `messages` — список; Bearer сверяется с `orchestrator_api_key`. Non-stream: цепочка fallback по 429/503 с логированием попыток и trace. Stream: одна попытка — явно отражено в trace (`stream_single_attempt`); ошибки upstream превращаются в SSE `error` + `[DONE]` — снижает «обрыв» в UI.
 - **Роутер** ([router.py](../../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/router.py)): роли из реестра YAML; выбор local vs OpenRouter для code/deep через `code_route_preference`.
 - **Классификатор** ([classifier.py](../../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/classifier.py)): эвристики + исключения для даты/времени (не canned), согласовано с clock injection в main.
-- **Пробел:** фаза 1 ROADMAP (ingest PDF/image/audio → артефакты) **не реализована**; ARCHITECTURE описывает целевой пайплайн — текущий код в основном прокси + классификация + промпты по роли. Для вложений поведение по-прежнему опирается на WebUI/LiteLLM, не на оркестратор-центричный контракт из ROADMAP §1.
+- **Обновление (2026-04):** ingest PDF/аудио в оркестраторе ([`ingest/`](../../versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/)) реализован; оставшийся scope ROADMAP — расширение контрактов и UX вложений по [ROADMAP §1](../../versions_dep/v3/ROADMAP.md).
 
 ---
 
@@ -51,7 +51,7 @@
 ## Reliability & ops
 
 - **Healthchecks:** LiteLLM liveliness, orchestrator `/healthz`, embedding-shim `/healthz` — заданы в [docker-compose.yml](../../versions_dep/v3/docker-compose.yml).
-- **Зависимости:** `open-webui` ждёт healthy `embedding-shim`. Если BGE на хосте не запущен, **не поднимется весь WebUI**, даже для сценария без RAG — жёсткая связность (операционный риск).
+- **Зависимости (обновление 2026-04):** `embedding-shim` в профиле Compose **`rag`**; базовый `docker compose up` поднимает чат без shim. `open-webui` не ждёт shim в `depends_on`; для RAG нужен `COMPOSE_PROFILES=rag` (или `--profile rag`) и BGE на хосте.
 - **Таймауты:** `LITELLM_TIMEOUT_SECONDS` до 3600 в settings; httpx connect capped 60s — разумно.
 - **Логирование оркестратора:** `logging`, не `print`; trace в логах + заголовок.
 
@@ -59,16 +59,16 @@
 
 ## Performance
 
-- **embedding_shim:** новый `httpx.AsyncClient` на каждый `POST /v1/embeddings` — при частых RAG-запросах лишние соединения; горячий путь, но вне scope если RAG умеренный.
+- **embedding_shim:** `AsyncClient` на lifespan (см. текущий `main.py`); при росте нагрузки RAG — мониторинг пула соединений.
 - Остальное без явных N+1 в просмотренном коде прокси.
 
 ---
 
 ## Tests & verification
 
-- Команда: `cd versions_dep/v3/apps/orchestrator && uv run pytest -q` — **65 passed** (2026-04-02).
-- Покрытие: классификатор, роутер, trace, models proxy, fallback, reasoning strip, canned greeting и др.
-- **CHANGELOG** в пакете orchestrator **не найден** — расхождение с типичным Definition of Done из charter для значимых релизов.
+- Команда: `cd versions_dep/v3/apps/orchestrator && uv run pytest -q` — см. актуальный счётчик в CI/локально (после ingest/readyz — десятки тестов).
+- Покрытие: классификатор, роутер, trace, models proxy, fallback, reasoning strip, canned greeting, ingest, readyz и др.
+- **CHANGELOG:** [versions_dep/v3/apps/orchestrator/CHANGELOG.md](../../versions_dep/v3/apps/orchestrator/CHANGELOG.md) ведётся для пакета оркестратора.
 
 ---
 

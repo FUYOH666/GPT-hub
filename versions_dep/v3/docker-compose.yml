@@ -8,6 +8,9 @@ services:
     restart: unless-stopped
     ports:
       - "4000:4000"
+    # Доступ к instruct на хосте (:8002); на Linux без Docker Desktop нужен host-gateway
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../v2_c2/litellm/config.yaml:/app/config.yaml:ro
     environment:
@@ -18,7 +21,8 @@ services:
       OR_APP_NAME: ${OR_APP_NAME:-GPTHub}
       MWS_GPT_API_BASE: ${MWS_GPT_API_BASE:-}
       MWS_GPT_API_KEY: ${MWS_GPT_API_KEY:-}
-      LLM_INSTRUCT_API_BASE: ${LLM_INSTRUCT_API_BASE:-}
+      # Пустой base → LiteLLM не достучится до локали, долгие таймауты и fallback на OpenRouter
+      LLM_INSTRUCT_API_BASE: ${LLM_INSTRUCT_API_BASE:-http://host.docker.internal:8002/v1}
       LLM_INSTRUCT_API_KEY: ${LLM_INSTRUCT_API_KEY:-local-instruct}
     command:
       - "--config"
@@ -60,7 +64,7 @@ services:
       ORCHESTRATOR_CLOCK_TZ: ${ORCHESTRATOR_CLOCK_TZ:-UTC}
       ORCHESTRATOR_MODELS_CATALOG: ${ORCHESTRATOR_MODELS_CATALOG:-single_public}
       ORCHESTRATOR_PUBLIC_MODEL_ID: ${ORCHESTRATOR_PUBLIC_MODEL_ID:-gpt-hub}
-      GREETING_CANNED_RESPONSE_ENABLED: ${GREETING_CANNED_RESPONSE_ENABLED:-true}
+      GREETING_CANNED_RESPONSE_ENABLED: ${GREETING_CANNED_RESPONSE_ENABLED:-false}
       GREETING_CANNED_MESSAGE: "${GREETING_CANNED_MESSAGE:-Привет! Чем могу помочь?}"
       ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE: ${ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE:-false}
       ORCHESTRATOR_REQUEST_REASONING_EXCLUDE: ${ORCHESTRATOR_REQUEST_REASONING_EXCLUDE:-true}

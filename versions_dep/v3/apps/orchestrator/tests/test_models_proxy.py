@@ -112,7 +112,7 @@ async def test_chat_facade_id_maps_when_auto_route_off():
                 orchestrator_api_key="test-key",
                 auto_route_model=False,
                 orchestrator_litellm_fallback=False,
-                default_text_model="gpt-hub-strong",
+                default_text_model="gpt-hub-turbo",
                 orchestrator_public_model_id="gpt-hub",
             )
             app.state.http = mock_inner
@@ -125,6 +125,6 @@ async def test_chat_facade_id_maps_when_auto_route_off():
                 },
             )
         assert r.status_code == 200
-        assert seen_models == ["gpt-hub-strong"]
+        assert seen_models == ["gpt-hub-turbo"]
     finally:
         await mock_inner.aclose()

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     )
     code_route_preference: Literal["local", "openrouter"] = Field(
         default="local",
-        description="For code/deep tasks: prefer local gpt-hub-turbo vs OpenRouter free chain",
+        description="For code/deep tasks: role key (prompt) differs; both chains use local turbo then OR fallback",
     )
     orchestrator_litellm_fallback: bool = Field(
         default=True,
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
         default=None,
         description="Optional path to role_prompts.yaml (default: packaged data)",
     )
-    default_text_model: str = Field(default="gpt-hub-strong")
+    default_text_model: str = Field(default="gpt-hub-turbo")
     default_vision_model: str = Field(default="gpt-hub-vision")
     default_code_heavy_model: str = Field(default="gpt-hub-turbo")
     log_level: str = Field(default="INFO")
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
         description="Public model id shown in UI when catalog is single_public; must not be a LiteLLM alias",
     )
     greeting_canned_response_enabled: bool = Field(
-        default=True,
+        default=False,
         description="If true, greeting_or_tiny without images returns a fixed reply without calling LiteLLM",
     )
     greeting_canned_message: str = Field(

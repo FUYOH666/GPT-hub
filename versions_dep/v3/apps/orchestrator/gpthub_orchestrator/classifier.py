@@ -10,7 +10,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Short acknowledgments / goodbyes → use fast_text_chat (no gpt-hub-strong in chain)
+# Short acknowledgments / goodbyes → use fast_text_chat (short chain: local turbo + OR fallback)
 _ACK_PHRASES = frozenset(
     {
         "thanks",

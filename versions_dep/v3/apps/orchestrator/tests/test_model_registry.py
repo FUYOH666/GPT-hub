@@ -7,7 +7,7 @@ def test_load_default_registry():
     load_model_roles.cache_clear()
     reg = load_model_roles()
     assert "fast_text" in reg.roles
-    assert reg.roles["fast_text"].aliases[0] == "gpt-hub-fast"
+    assert reg.roles["fast_text"].aliases[0] == "gpt-hub-turbo"
 
 
 def test_aliases_for_role_unknown():

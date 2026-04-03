@@ -18,6 +18,8 @@
 | [docs/AGENT_HANDOFF_SCANOVICH.md](docs/AGENT_HANDOFF_SCANOVICH.md) | Краткий контекст для агента другого проекта (например Scanovich) |
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |
+| [LICENSE](LICENSE) | Лицензия MIT (код репозитория) |
+| [SECURITY.md](SECURITY.md) | Как сообщать о уязвимостях |
 | [docs/PRIVATE_REPO_SETUP.md](docs/PRIVATE_REPO_SETUP.md) | Создать приватный репозиторий на GitHub и первый push |
 | [docs/OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md) | Open WebUI: регистрация, роли, один админ, `WEBUI_URL` |
 | [docs/PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md) | Оркестратор: порядок system-промптов (роль GPTHub + клиент) |
@@ -51,4 +53,6 @@
 
 ## Лицензия и вклад
 
-Правообладатель кода и условия передачи прав призёрам — по [Положению хакатона](https://truetechhack.ru); перед финалом уточнить у организаторов при необходимости.
+Исходный код в этом репозитории (оркестратор, доки, скрипты интеграции) распространяется по лицензии **[MIT](LICENSE)**. Сторонние OSS-компоненты (Open WebUI, LiteLLM и др.) — по их лицензиям.
+
+Участие в **МТС True Tech Hack / кейс MWS GPT:** права на результат соревнования и передача прав призёрам — по [положению хакатона](https://truetechhack.ru); при расхождении с MIT для конкретной поставки уточнить у организаторов. Сообщения об уязвимостях: [SECURITY.md](SECURITY.md).

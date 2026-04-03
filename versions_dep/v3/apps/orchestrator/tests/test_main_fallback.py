@@ -31,7 +31,7 @@ async def test_non_stream_retries_on_429_then_200():
         assert request.url.host == "litellm.test"
         body = json.loads(request.content.decode())
         calls.append(str(body.get("model")))
-        if body.get("model") == "gpt-hub-fast":
+        if body.get("model") == "gpt-hub-turbo":
             return httpx.Response(429, json={"error": "rate_limited"})
         return httpx.Response(
             200,
@@ -68,13 +68,13 @@ async def test_non_stream_retries_on_429_then_200():
                 },
             )
         assert r.status_code == 200
-        assert calls == ["gpt-hub-fast", "gpt-hub-strong"]
+        assert calls == ["gpt-hub-turbo", "gpt-hub-fallback"]
         trace_hdr = r.headers.get("X-GPTHub-Trace")
         assert trace_hdr
         raw = base64.b64decode(trace_hdr).decode("utf-8")
         trace = json.loads(raw)
         assert trace["orchestrator_fallback"]["retries_after_failure"] == 1
-        assert trace["orchestrator_fallback"]["model_selected"] == "gpt-hub-strong"
+        assert trace["orchestrator_fallback"]["model_selected"] == "gpt-hub-fallback"
         assert trace["prompt_version"] == "v0.5.2"
         assert trace["classifier_source"] == "heuristic"
         assert trace["fallback_used"] is True

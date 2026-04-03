@@ -4,11 +4,16 @@
 
 ### Added
 
+- **[LICENSE](LICENSE)** (MIT) и **[SECURITY.md](SECURITY.md)**; в [README.md](README.md) — ссылки, разделение MIT vs положение хакатона / MWS.
 - **v3 — ingest (фаза 1) и ops:** модуль [`versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/ingest/) (PDF через `pypdf`, аудио через `ORCHESTRATOR_ASR_*` → OpenAI-compatible transcriptions), интеграция в [`main.py`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/main.py), trace `ingest_ms` / `artifacts`; [`GET /readyz`](versions_dep/v3/apps/orchestrator/README.md) (LiteLLM liveliness); [`embedding_shim` lifespan + `JSONDecodeError`](versions_dep/v3/embedding_shim/main.py). Документ [docs/WEBUI-PAYLOAD.md](docs/WEBUI-PAYLOAD.md); [versions_dep/v3/apps/orchestrator/CHANGELOG.md](versions_dep/v3/apps/orchestrator/CHANGELOG.md).
 
 ### Changed
 
-- [`versions_dep/v3/docker-compose.yml`](versions_dep/v3/docker-compose.yml) — сервис **`embedding-shim`** только с профилем **`rag`**; WebUI не ждёт shim; см. [versions_dep/v3/README.md](versions_dep/v3/README.md), [.env.example](versions_dep/v3/.env.example), [CONTINUATION.md](versions_dep/v3/CONTINUATION.md).
+- **v3 orchestrator — canned greeting по умолчанию выключен:** `GREETING_CANNED_RESPONSE_ENABLED` default **`false`** ([`settings.py`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/settings.py), [compose](versions_dep/v3/docker-compose.yml)); «привет» / «как дела?» снова через LiteLLM. Включить: `GREETING_CANNED_RESPONSE_ENABLED=true`. Доки: [PROMPT_PRECEDENCE.md](docs/PROMPT_PRECEDENCE.md), [OPENWEBUI_ROLES.md](docs/OPENWEBUI_ROLES.md).
+
+- [`versions_dep/v3/docker-compose.yml`](versions_dep/v3/docker-compose.yml) — **`litellm`**: `extra_hosts` + дефолт **`LLM_INSTRUCT_API_BASE`** (`host.docker.internal:8002/v1`); сервис **`embedding-shim`** только с профилем **`rag`**; WebUI не ждёт shim; см. [versions_dep/v3/README.md](versions_dep/v3/README.md), [.env.example](versions_dep/v3/.env.example), [CONTINUATION.md](versions_dep/v3/CONTINUATION.md).
+- [docs/reviews/2026-04-02-multi-version-audit.md](docs/reviews/2026-04-02-multi-version-audit.md) — актуализация (ingest, профиль `rag`, shim client).
+- **v3 — мало OpenRouter:** [`versions_dep/v2_c2/litellm/config.yaml`](versions_dep/v2_c2/litellm/config.yaml) — все текстовые алиасы на локальный instruct (`LLM_INSTRUCT_API_BASE`); OpenRouter free — **`gpt-hub-vision`** и **`gpt-hub-fallback`**. [`model_roles.yaml`](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml), `default_text_model` → **`gpt-hub-turbo`**; доки [.env.example](versions_dep/v3/.env.example), [versions_dep/v3/README.md](versions_dep/v3/README.md).
 
 ### Added
 

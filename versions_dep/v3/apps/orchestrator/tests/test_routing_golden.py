@@ -29,7 +29,7 @@ def test_golden_greeting_fast_text_chat():
     assert cl["task_type"] == "greeting_or_tiny"
     rs = choose_model(cl, _settings())
     assert rs["model_role"] == "fast_text_chat"
-    assert rs["model_name"] == "gpt-hub-fast"
+    assert rs["model_name"] == "gpt-hub-turbo"
     assert "gpt-hub-strong" not in rs["fallback_aliases"]
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)

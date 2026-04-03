@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`GREETING_CANNED_RESPONSE_ENABLED`** по умолчанию **`false`**: приветствия и короткий small-talk снова идут в LiteLLM; canned включается явно через env / compose.
+
 ### Added
 
 - Ingest pipeline (phase 1): PDF из `file` + data URL, аудио через ASR (`ORCHESTRATOR_ASR_*`), `asyncio.gather`, trace `ingest_ms` / `artifacts`.
@@ -13,6 +17,7 @@
 ### Changed
 
 - Docker v3: `embedding-shim` в профиле `rag`; WebUI не ждёт shim без профиля.
+- Маршрутизация «мало OpenRouter»: все текстовые роли — `gpt-hub-turbo` → `gpt-hub-fallback`; в `litellm/config.yaml` алиасы `fast`/`strong`/`doc`/`reasoning-or` указывают на тот же локальный instruct, что и `turbo`. OpenRouter free остаётся для `gpt-hub-vision` и общего `gpt-hub-fallback`. `default_text_model` по умолчанию — `gpt-hub-turbo`.
 
 ### Notes
 
