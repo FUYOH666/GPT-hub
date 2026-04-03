@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  orchestrator-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: versions_dep/v3/apps/orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.3"
+      - name: Sync and pytest
+        run: |
+          uv sync --frozen --extra dev
+          uv run pytest -q

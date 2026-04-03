@@ -13,7 +13,7 @@
 
 ### Added
 
-- [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), шаблоны [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) и [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
+- [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), шаблоны [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) и [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md); CI [.github/workflows/ci.yml](.github/workflows/ci.yml) — `pytest` оркестратора на push/PR.
 - Оркестратор: `python -m gpthub_orchestrator.tools.list_free_models --suggest-vision-chain` — эвристика порядка free+image и YAML-черновик для `litellm/config.yaml`; тесты [test_list_free_models.py](versions_dep/v3/apps/orchestrator/tests/test_list_free_models.py).
 - [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) — чеклист для форка: env, compose, модели (`litellm/config.yaml`), официальное ТЗ, ссылки на TEAM_PUBLIC_ACCESS и PITCH-DEMO.
 - **[LICENSE](LICENSE)** (MIT) и **[SECURITY.md](SECURITY.md)**; в [README.md](README.md) — ссылки, разделение MIT vs положение хакатона / MWS.

@@ -9,7 +9,7 @@
 
 ## Перед PR
 
-1. Из `versions_dep/v3/apps/orchestrator`: `uv sync --dev` и `uv run pytest`.
+1. Из `versions_dep/v3/apps/orchestrator`: `uv sync --extra dev` и `uv run pytest`.
 2. Если менялись `model_roles.yaml`, `role_prompts.yaml` или код оркестратора — пересоберите образ: `docker compose build orchestrator` (из `versions_dep/v3`).
 3. Секреты, TailScale IP, внутренние id моделей ASR — только в локальном `.env`, не в git.
 
