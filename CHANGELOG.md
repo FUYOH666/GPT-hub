@@ -4,6 +4,7 @@
 
 ### Changed
 
+- [README.md](README.md) — раздел «Зачем репозиторий открыт»: контекст хакатона, прототип (OpenRouter/OSS), акцент на команде и процессе, приглашение к форкам.
 - Доки: убраны конкретные домены витрины из [TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md); handoff для внешнего репо — [AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) (вместо удалённого `AGENT_HANDOFF_SCANOVICH.md`); обновлены [README.md](README.md), [AGENTS.md](AGENTS.md).
 
 ### Added
