@@ -2,12 +2,9 @@
 
 ## [Unreleased]
 
-### Added
-
-- [AUTHORS.md](AUTHORS.md) / [README.md](README.md): **Pavel Usatov** ([@UsatovPavel](https://github.com/UsatovPavel)) — участник команды.
-
 ### Changed
 
+- [AUTHORS.md](AUTHORS.md), [README.md](README.md), метаданные пакета оркестратора: в публичном дереве указаны только фактические авторы опубликованного кода.
 - Удалён внутренний черновик `docs/ISSUES_REPLY_DRAFTS_USATOV.md` из публичного репо; комментарии в issues обновлены без ссылки на него.
 - Репозиторий **публичный** на GitHub; краткое описание репозитория обновлено.
 - **ASR / STT:** дефолтный id модели в репозитории заменён на нейтральный `whisper-1` (внутренние slug’и ASR — только в локальном `.env`). Затронуты [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml), [settings.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/settings.py), v2_c2 compose, `.env.example`, [v2_c2/README.md](versions_dep/v2_c2/README.md).

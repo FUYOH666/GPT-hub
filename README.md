@@ -74,7 +74,7 @@
 
 ## Авторство
 
-Инициатива и ведение репозитория: **Aleksandr Mordvinov** ([**@FUYOH666** на GitHub](https://github.com/FUYOH666)). Команда и соавторство: [AUTHORS.md](AUTHORS.md) (в т.ч. **Pavel Usatov** / [@UsatovPavel](https://github.com/UsatovPavel)).
+Инициатива и ведение репозитория: **Aleksandr Mordvinov** ([**@FUYOH666** на GitHub](https://github.com/FUYOH666)). Подробнее: [AUTHORS.md](AUTHORS.md).
 
 ## Лицензия и вклад
 

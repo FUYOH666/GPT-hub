@@ -4,10 +4,6 @@
 
 - **Aleksandr Mordvinov** — [GitHub @FUYOH666](https://github.com/FUYOH666)
 
-**Команда (хакатон):**
-
-- **Pavel Usatov** — [GitHub @UsatovPavel](https://github.com/UsatovPavel) — архитектурные и продуктовые предложения (см. [issues](https://github.com/FUYOH666/GPT-hub/issues)); соавторство по направлениям после фиксации регламента площадки.
-
 Внешний вклад при соавторстве — отдельными строками (имя + опционально ссылка).
 
 В состав продукта входят сторонние OSS-компоненты (Open WebUI, LiteLLM и др.) — их лицензии см. у соответствующих проектов.
