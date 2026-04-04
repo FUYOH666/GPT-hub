@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "GPTHub Workspace orchestrator"
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [{ name = "Aleksandr Mordvinov" }]
+authors = [
+    { name = "Aleksandr Mordvinov" },
+    { name = "Pavel Usatov" },
+]
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",

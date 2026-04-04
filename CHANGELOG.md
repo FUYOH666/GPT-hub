@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- [AUTHORS.md](AUTHORS.md) / [README.md](README.md): **Pavel Usatov** ([@UsatovPavel](https://github.com/UsatovPavel)) — участник команды; [docs/ISSUES_REPLY_DRAFTS_USATOV.md](docs/ISSUES_REPLY_DRAFTS_USATOV.md) — тезисы ответов по его GitHub issues.
+
 ### Changed
 
 - Репозиторий **публичный** на GitHub; краткое описание репозитория обновлено.
