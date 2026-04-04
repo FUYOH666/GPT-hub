@@ -4,10 +4,11 @@
 
 ### Added
 
-- [AUTHORS.md](AUTHORS.md) / [README.md](README.md): **Pavel Usatov** ([@UsatovPavel](https://github.com/UsatovPavel)) — участник команды; [docs/ISSUES_REPLY_DRAFTS_USATOV.md](docs/ISSUES_REPLY_DRAFTS_USATOV.md) — тезисы ответов по его GitHub issues.
+- [AUTHORS.md](AUTHORS.md) / [README.md](README.md): **Pavel Usatov** ([@UsatovPavel](https://github.com/UsatovPavel)) — участник команды.
 
 ### Changed
 
+- Удалён внутренний черновик `docs/ISSUES_REPLY_DRAFTS_USATOV.md` из публичного репо; комментарии в issues обновлены без ссылки на него.
 - Репозиторий **публичный** на GitHub; краткое описание репозитория обновлено.
 - **ASR / STT:** дефолтный id модели в репозитории заменён на нейтральный `whisper-1` (внутренние slug’и ASR — только в локальном `.env`). Затронуты [versions_dep/v3/docker-compose.yml](versions_dep/v3/docker-compose.yml), [settings.py](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/settings.py), v2_c2 compose, `.env.example`, [v2_c2/README.md](versions_dep/v2_c2/README.md).
 - **LiteLLM / OpenRouter vision:** [versions_dep/v2_c2/litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml) — цепочка `gpt-hub-vision` … `gpt-hub-vision-4` + `gpt-hub-fallback` (Qwen / NVIDIA / Gemma); убран fallback `gpt-hub-fallback` → локальный Qwen (исправление 400 «not multimodal» при картинках). `num_retries: 3`. [model_roles.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml) — расширен `vision_general`. Доки: [versions_dep/v3/README.md](versions_dep/v3/README.md), [versions_dep/v2_c2/README.md](versions_dep/v2_c2/README.md), [ROADMAP](versions_dep/v3/ROADMAP.md).

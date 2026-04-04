@@ -39,7 +39,6 @@
 | [docs/TEAM_PUBLIC_ACCESS.md](docs/TEAM_PUBLIC_ACCESS.md) | **Канон:** публичный HTTPS для Open WebUI (туннель или VPS), прокси WS/SSE, безопасность; витрина — отдельный репо сайта |
 | [docs/CLOUDFLARE_TUNNEL_HANDOFF.md](docs/CLOUDFLARE_TUNNEL_HANDOFF.md) | Текст задачи для человека с доступом к Cloudflare (Tunnel → `localhost:3000`) |
 | [docs/AGENT_HANDOFF_EXTERNAL_REPO.md](docs/AGENT_HANDOFF_EXTERNAL_REPO.md) | Краткий контекст для агента другого репо / витрины |
-| [docs/ISSUES_REPLY_DRAFTS_USATOV.md](docs/ISSUES_REPLY_DRAFTS_USATOV.md) | Тезисы ответов по issues команды (архитектура / метрики / память) |
 | [AGENTS.md](AGENTS.md) | Подсказка для Cursor: куда смотреть в монорепо |
 | [AUTHORS.md](AUTHORS.md) | Авторство и контакты |
 | [LICENSE](LICENSE) | Лицензия MIT (код репозитория) |
