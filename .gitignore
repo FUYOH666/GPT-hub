@@ -19,3 +19,9 @@ build/
 .vscode/
 *.swp
 *~
+
+# Внутренние черновики / жюри (не публиковать на GitHub)
+/idea1.md
+/idea2.md
+/idea3.md
+/JURY_REVIEW.md
