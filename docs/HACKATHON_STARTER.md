@@ -43,4 +43,6 @@ docker compose up -d --build
 
 - **Не коммитьте** `.env`, реальные IP, токены туннелей. В git — только плейсхолдеры в `.env.example`.
 
+Синхронизация команды (текст для чата, стратегия до/после ТЗ): [HACKATHON_TEAM_SYNC.md](HACKATHON_TEAM_SYNC.md).
+
 Удачи на соревновании.

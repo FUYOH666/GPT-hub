@@ -30,6 +30,7 @@
 |----------|------------|
 | [README.md](README.md) | Точка входа в репозиторий (этот файл) |
 | [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) | **Чеклист** для форка: env, compose, модели, ТЗ площадки |
+| [docs/HACKATHON_TEAM_SYNC.md](docs/HACKATHON_TEAM_SYNC.md) | **Команда:** текст для чата (Telegram), тезисы до/после ТЗ площадки |
 | [versions_dep/v3/README.md](versions_dep/v3/README.md) | **Актуальный запуск Docker**, переменные, troubleshooting |
 | [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md) | Архитектура v3: WebUI → orchestrator → LiteLLM |
 | [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) | Бэклог и фазы разработки |

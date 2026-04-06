@@ -15,6 +15,7 @@
 
 ### Added
 
+- [docs/HACKATHON_TEAM_SYNC.md](docs/HACKATHON_TEAM_SYNC.md) — повестка для команды: готовое сообщение в Telegram, тезисы (вводные площадки → стратегия A/B/C), ссылки на HACKATHON_STARTER и ROADMAP; строка в таблице [README.md](README.md).
 - [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), шаблоны [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) и [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md); CI [.github/workflows/ci.yml](.github/workflows/ci.yml) — `pytest` оркестратора на push/PR.
 - Оркестратор: `python -m gpthub_orchestrator.tools.list_free_models --suggest-vision-chain` — эвристика порядка free+image и YAML-черновик для `litellm/config.yaml`; тесты [test_list_free_models.py](versions_dep/v3/apps/orchestrator/tests/test_list_free_models.py).
 - [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) — чеклист для форка: env, compose, модели (`litellm/config.yaml`), официальное ТЗ, ссылки на TEAM_PUBLIC_ACCESS и PITCH-DEMO.
