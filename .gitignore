@@ -5,6 +5,10 @@
 credentials.*
 compose-setup.log
 **/free_models_catalog.runtime.yaml
+versions_dep/v4/reports/
+**/reports/*.md
+**/reports/*.json
+apps/orchestrator/reports/
 .pytest_cache/
 .venv/
 **/.venv/

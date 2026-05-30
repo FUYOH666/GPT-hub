@@ -25,3 +25,6 @@ jobs:
         run: |
           uv sync --extra dev
           uv run pytest -q
+      - name: Ops simulator (mock E2E)
+        run: |
+          uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=mock --report=/tmp/ops-mock.json

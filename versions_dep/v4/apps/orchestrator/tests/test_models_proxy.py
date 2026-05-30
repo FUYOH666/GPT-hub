@@ -8,6 +8,7 @@ os.environ.setdefault("OPENROUTER_API_KEY", "or-test-key")
 os.environ.setdefault("ORCHESTRATOR_API_KEY", "test-key")
 
 from gpthub_orchestrator.main import app  # noqa: E402
+from gpthub_orchestrator.openrouter.catalog import load_free_models_catalog
 from gpthub_orchestrator.openrouter.client import OpenRouterClient
 from gpthub_orchestrator.settings import Settings  # noqa: E402
 
@@ -29,8 +30,9 @@ async def test_v1_models_catalog_all_lists_catalog_slugs():
         assert r.status_code == 200
         body = r.json()
         ids = {m["id"] for m in body["data"]}
-        assert "google/gemma-3-4b-it:free" in ids
-        assert "qwen/qwen3.6-plus:free" in ids
+        catalog = load_free_models_catalog()
+        for slug in catalog.text_fast[:1] + catalog.vision[:1]:
+            assert slug in ids
     finally:
         await mock_inner.aclose()
 

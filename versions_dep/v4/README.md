@@ -66,6 +66,20 @@ bash scripts/verify_v4.sh   # smoke (нужен ORCHESTRATOR_API_KEY в env)
 - `OPENROUTER_CURATOR_ENABLED=true` — фоновый LLM-куратор
 - `ORCHESTRATOR_OPENROUTER_FALLBACK=true` — цепочка моделей при 429/5xx
 
+## Validation
+
+После `docker compose up` или локального uvicorn:
+
+```bash
+bash scripts/verify_v4.sh              # smoke (1 запрос)
+bash scripts/run_ops_simulator.sh mock # CI-safe: routing + fault injection
+bash scripts/run_ops_simulator.sh live  # OpenRouter live (routing + degraded upstream)
+```
+
+Отчёты: `reports/ops-mock.json`, `reports/ops-live.json` (+ `.md` summary).  
+Staff review: [docs/reviews/2026-05-30-v4-staff-review.md](../../docs/reviews/2026-05-30-v4-staff-review.md).  
+Demo prompts: [docs/DEMO_PROMPTS.md](../../docs/DEMO_PROMPTS.md).
+
 ## Тесты
 
 ```bash

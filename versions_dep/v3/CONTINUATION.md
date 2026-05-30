@@ -1,3 +1,5 @@
+> **Legacy (frozen).** Active line: [v4](../v4/README.md). Agent handoff for v4: [CONTINUATION.md](../v4/CONTINUATION.md). Index: [LEGACY.md](../LEGACY.md).
+
 # Передача контекста: продолжение разработки v3 (новый чат)
 
 Скопируйте этот файл или раздел **«Промпт для нового чата»** в начало следующей сессии. Репозиторий: **GPT-hub** (True Tech Hack 2026, кейс MWS GPT).

@@ -1,6 +1,6 @@
 # GPTHub Workspace — `versions_dep/v3`
 
-> **Legacy:** активная разработка в [v4](../v4/README.md) (OpenRouter Free Survival Engine). v3 — hybrid LiteLLM + локальный instruct. Не поднимать одновременно с v4 (порты 3000/8089).
+> **Legacy (frozen).** Active line: [v4](../v4/README.md). Index: [LEGACY.md](../LEGACY.md). Do not run alongside v4 (ports 3000/8089).
 
 **Open WebUI (UI)** + **GPTHub Orchestrator (FastAPI)** + **LiteLLM (gateway к моделям)**.
 

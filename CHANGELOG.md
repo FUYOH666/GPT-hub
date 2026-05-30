@@ -4,6 +4,16 @@
 
 ### Added
 
+- **Documentation restructure:** [docs/README.md](docs/README.md) hub, slim root [README.md](README.md), [docs/DOC_INVENTORY.md](docs/DOC_INVENTORY.md); hackathon docs archived to [docs/archive/hackathon/](docs/archive/hackathon/) with stubs at old paths; [docs/archive/hackathon/ORIGIN.md](docs/archive/hackathon/ORIGIN.md).
+
+### Changed
+
+- [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), [AUTHORS.md](AUTHORS.md) — v4 paths, GitHub-only contact; [versions_dep/v4/CONTINUATION.md](versions_dep/v4/CONTINUATION.md) rewritten for v4; legacy banners on v3 docs; PR/issue templates target v4; `.gitignore` for `**/reports/*.md`.
+
+### Added
+
+- **Ops simulator v4:** `ops_scenarios.yaml`, `gpthub_orchestrator.tools.ops_simulator` (mock + live), `run_ops_simulator.sh`, routing invariants module, Staff Review [docs/reviews/2026-05-30-v4-staff-review.md](docs/reviews/2026-05-30-v4-staff-review.md); CI mock simulator step; `DEMO_PROMPTS.md` v4 update.
+
 - **v4 product roadmap:** stream model fallback, runtime model health ban (429 TTL), periodic catalog refresh (`OPENROUTER_CATALOG_REFRESH_INTERVAL_HOURS`), async LLM Model Curator (`OPENROUTER_CURATOR_ENABLED`), RU `openrouter_exhausted` messages, `/trace` decoder page, `/v1/admin/catalog`, [docs/ZERO_ENTRY.md](docs/ZERO_ENTRY.md), [versions_dep/v4/ROADMAP.md](versions_dep/v4/ROADMAP.md), [versions_dep/LEGACY.md](versions_dep/LEGACY.md).
 
 - **v4 — OpenRouter Free Survival Engine** ([versions_dep/v4](versions_dep/v4)): orchestrator calls OpenRouter directly (no LiteLLM); `OpenRouterClient` + `KeyPool` (multi-key rotation, RPM throttle, cooldown); `free_models_catalog.yaml` + role chains via `catalog.*`; extended `X-GPTHub-Trace` (`model_attempts`, `quota_remaining`); CLI `--write-catalog` / `--suggest-text-chain`; weekly workflow [`.github/workflows/openrouter-catalog.yml`](.github/workflows/openrouter-catalog.yml). CI pytest targets v4.

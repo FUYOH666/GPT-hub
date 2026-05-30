@@ -1,24 +1,26 @@
 ---
 name: Bug report
-about: Сообщить об ошибке в стеке GPTHub
+about: Report a bug in GPTHub v4
 labels: bug
 ---
 
-## Окружение
+## Environment
 
-- Ветка / коммит:
+- Branch / commit:
 - OS:
-- Запуск: Docker v3 / локальный uvicorn / другое
+- Stack: Docker v4 (`versions_dep/v4`) / local uvicorn / other
 
-## Шаги воспроизведения
+## Steps to reproduce
 
 1.
 2.
 
-## Ожидалось / фактически
+## Expected / actual
 
 -
 
-## Логи (без секретов)
+## Logs (no secrets)
 
-Приложите фрагмент логов оркестратора или LiteLLM, заголовок `X-GPTHub-Trace` (base64 можно обрезать), если релевантно.
+Attach orchestrator logs, `X-GPTHub-Trace` header (base64 may be truncated), or `/trace` output if relevant.
+
+**v4 env (redact keys):** `OPENROUTER_API_KEY` set? `docker compose ps` healthy?

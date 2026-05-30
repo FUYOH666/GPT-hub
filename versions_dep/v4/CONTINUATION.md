@@ -1,160 +1,117 @@
-# Передача контекста: продолжение разработки v3 (новый чат)
+# Agent handoff: v4 (OpenRouter Free Survival Engine)
 
-Скопируйте этот файл или раздел **«Промпт для нового чата»** в начало следующей сессии. Репозиторий: **GPT-hub** (True Tech Hack 2026, кейс MWS GPT).
-
----
-
-## Где мы сейчас
-
-| Ветка работы | Статус |
-|--------------|--------|
-| **v2_c2** (`versions_dep/v2_c2`) | **Заморозка.** Протестированный стек Open WebUI + LiteLLM напрямую. Конфиг алиасов LLM: `v2_c2/litellm/config.yaml` — **v3 монтирует этот же файл** (не дублировать правки в двух местах). |
-| **v3** (`versions_dep/v3`) | **Активная разработка.** GPTHub Workspace: Open WebUI → **FastAPI orchestrator** → LiteLLM. Документы: [ARCHITECTURE.md](ARCHITECTURE.md), детальный план: [ROADMAP.md](ROADMAP.md). |
-
-**Следующая работа по плану:** [ROADMAP.md](ROADMAP.md) — **Фаза 1** (Perception: разбор payload WebUI, ingest PDF/image/audio, Context Artifacts, интеграция в `main.py`).
+Copy this file or the **prompt section** into a new chat session.
 
 ---
 
-## Docker: остановить v2, не конфликтовать с v3
+## Current state
 
-Оба стека по умолчанию занимают **порты 3000** (WebUI) и **4000** (LiteLLM). Одновременно не поднимать.
+| Area | Status |
+|------|--------|
+| **v4** (`versions_dep/v4`) | **Active product.** Open WebUI → FastAPI orchestrator → OpenRouter free models (Survival Engine: key pool, RPM, 429 fallback, catalog refresh). |
+| **v3** (`versions_dep/v3`) | **Legacy frozen** — LiteLLM hybrid. Do not run alongside v4 (ports 3000/8089). |
+| **Hackathon docs** | Archived under [docs/archive/hackathon/](../../docs/archive/hackathon/README.md). |
 
-### Контейнеры v2_c2 (старые имена)
+**Backlog:** [ROADMAP.md](ROADMAP.md) — especially **Post-validation backlog** (P1–P9). Staff review: [docs/reviews/2026-05-30-v4-staff-review.md](../../docs/reviews/2026-05-30-v4-staff-review.md).
 
-- `gpthub-litellm`
-- `gpthub-open-webui`
+---
 
-Остановка из каталога v2:
-
-```bash
-cd versions_dep/v2_c2
-docker compose down
-```
-
-### Контейнеры v3
-
-- `gpthub-v3-litellm`
-- `gpthub-v3-orchestrator`
-- `gpthub-v3-open-webui`
-- `gpthub-v3-embedding-shim` — только с профилем **`rag`** (нужен BGE на хосте :9001)
-
-Запуск:
+## Docker (v4)
 
 ```bash
-cd versions_dep/v3
-cp .env.example .env   # если ещё нет
+cd versions_dep/v4
+cp .env.example .env   # ORCHESTRATOR_API_KEY, OPENROUTER_API_KEY, WEBUI_SECRET_KEY
 docker compose up -d --build
-# С RAG (embedding-shim): docker compose --profile rag up -d --build
+docker compose down    # stop; add -v to wipe WebUI volume
 ```
 
-Остановка v3:
-
-```bash
-cd versions_dep/v3
-docker compose down
-```
-
-### Очистка (опционально)
-
-- Только остановить: `docker compose down` (volumes по умолчанию **сохраняются** — данные WebUI останутся).
-- Удалить volume WebUI **v2**: в `v2_c2` в compose volume назывался `open-webui-data` — при `docker compose down -v` **сотрётся история чатов v2** (осознанно).
-- Удалить volume WebUI **v3**: в v3 volume `open-webui-v3-data`; `docker compose down -v` в каталоге v3.
-- Образы неиспользуемые: `docker image prune` (осторожно, глобально по хосту).
-
-Проверка, что ничего не слушает 3000/4000:
-
-```bash
-lsof -i :3000 -i :4000
-# или
-docker ps --format '{{.Names}}\t{{.Ports}}'
-```
+- Open WebUI: http://localhost:3000  
+- Orchestrator: http://localhost:8089 — `GET /healthz`, `GET /trace`, `GET /v1/admin/catalog`  
+- Do **not** run v3 compose at the same time on 3000/8089.
 
 ---
 
-## Цепочка запросов v3
+## Request path
 
 ```text
-Браузер → Open WebUI :3000
+Browser → Open WebUI :3000
   → OPENAI_API_BASE_URL=http://orchestrator:8000/v1
-  → gpthub-v3-orchestrator :8089 (с хоста) — прокси **GET /v1/models** и **POST /v1/chat/completions**
-  → http://litellm:4000/v1/…
-  → OpenRouter / MWS / свой :8002 (как в config.yaml)
+  → gpthub-orchestrator :8089 (host)
+  → OpenRouter API (free model chains, key rotation)
 ```
 
-- Ключ для WebUI и проверки оркестратора: **`LITELLM_MASTER_KEY`** (тот же Bearer).
-- Оркестратор: `GET http://localhost:8089/healthz`
-- Trace: логи контейнера `gpthub-v3-orchestrator`, заголовок ответа **`X-GPTHub-Trace`** (base64 JSON) для не-stream запросов.
-- PDF+RAG: `embedding-shim` + BGE :9001; в LiteLLM **без** `detect_prompt_injection` (ложные 400 на длинный документ). При `TransferEncodingError` в UI — см. [README.md](README.md) (`LITELLM_TIMEOUT_SECONDS`, логи `litellm_stream_upstream_error`).
-- Автовыбор модели: **по умолчанию включён** (`AUTO_ROUTE_MODEL=true` в compose и оркестраторе); выключить — `false` в `.env` и перезапуск orchestrator (см. [README.md](README.md)).
+- Trace: response header **`X-GPTHub-Trace`** (base64 JSON) or `/trace` decoder page.
+- Stream fallback: non-stream retry on upstream failure (see ROADMAP P2 for vision 400).
 
 ---
 
-## Локальная разработка orchestrator (без полного compose)
+## Local dev (orchestrator)
 
 ```bash
-cd versions_dep/v3/apps/orchestrator
-uv sync
-export LITELLM_BASE_URL=http://127.0.0.1:4000
-export ORCHESTRATOR_API_KEY=<тот же что LITELLM_MASTER_KEY>
-uv run pytest -q
+cd versions_dep/v4/apps/orchestrator
+uv sync --extra dev
+export OPENROUTER_API_KEY=...   # from .env, never commit
+export ORCHESTRATOR_API_KEY=...
+uv run pytest
+uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=mock
 uv run uvicorn gpthub_orchestrator.main:app --reload --port 8089
 ```
 
-Нужен запущенный LiteLLM (например из `docker compose up litellm` в v3 или v2 — только один на :4000).
+Optional live simulator (uses real OpenRouter quota):
 
----
-
-## Внешние сервисы (MacBook + TailScale)
-
-В **docker-compose v3** Open WebUI по умолчанию ходит на хост:
-
-- **BGE embeddings:** `host.docker.internal:9001`
-- **Reranker:** `host.docker.internal:9002`
-- **ASR (STT):** `host.docker.internal:8001`
-
-На практике в `.env` часто ставят **TailScale IP** GPU-сервера для ASR (и при необходимости тот же хост для :8002 instruct в LiteLLM). **Не коммитить** реальные IP — только `.env.example` с плейсхолдерами.
-
-Полезные **Cursor skills** (если включены у пользователя):
-
-- `remote-llm-service` — instruct :8002, thinking :8005
-- `remote-asr-service` — Whisper :8001
-- `remote-embedding-service`, `remote-reranker-service` — BGE :9001 / :9002
-- `tailscale-networking` — диагностика сети
-
----
-
-## Инженерные правила репозитория
-
-- Python: **`uv`** (`pyproject.toml`, `uv.lock` в `apps/orchestrator`).
-- Логи: `logging`, не `print`.
-- Секреты: только `.env`, в git — [`.env.example`](.env.example).
-- Корневой **[CONSTRUCTOR.md](../../CONSTRUCTOR.md)** — общая карта хакатона; **[CHANGELOG.md](../../CHANGELOG.md)** — фиксировать значимые изменения.
-
----
-
-## Промпт для нового чата (скопировать)
-
-```
-Продолжаем GPTHub versions_dep/v3 (GPTHub Workspace). v2_c2 заморожен; LiteLLM config общий: versions_dep/v2_c2/litellm/config.yaml.
-
-Прочитай для контекста:
-- versions_dep/v3/CONTINUATION.md
-- versions_dep/v3/ROADMAP.md (следующая работа — Фаза 1 Perception)
-- versions_dep/v3/ARCHITECTURE.md
-
-Стек: Open WebUI → FastAPI orchestrator (apps/orchestrator, uv) → LiteLLM. Порты v3: 3000 WebUI, 4000 LiteLLM, 8089 orchestrator. Перед запуском v3 останови v2: cd versions_dep/v2_c2 && docker compose down.
-
-Задача: реализовать следующий пункт из ROADMAP (Фаза 1).
+```bash
+uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=live
 ```
 
 ---
 
-## Файлы по смыслу
+## Key modules (v4)
 
-| Файл | Назначение |
-|------|------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Рецепт: perception → context → LLM, что не делаем |
-| [ROADMAP.md](ROADMAP.md) | Пошаговая реализация фаз 1–5, тесты, приёмка |
-| [README.md](README.md) | Быстрый старт, env |
-| [docker-compose.yml](docker-compose.yml) | Сервисы и сети |
-| `apps/orchestrator/gpthub_orchestrator/` | Код оркестратора |
+| Path | Role |
+|------|------|
+| `gpthub_orchestrator/openrouter/` | Client, catalog, health ban, curator |
+| `gpthub_orchestrator/ops/routing_invariants.py` | Routing invariants for simulator |
+| `gpthub_orchestrator/tools/ops_simulator.py` | Mock/live validation |
+| `gpthub_orchestrator/data/ops_scenarios.yaml` | Scenario definitions |
+| `gpthub_orchestrator/data/free_models_catalog.yaml` | Free model catalog |
+
+---
+
+## Docs to read first
+
+| File | Purpose |
+|------|---------|
+| [README.md](README.md) | v4 quickstart |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Stack design |
+| [ROADMAP.md](ROADMAP.md) | Phases + P1–P9 backlog |
+| [docs/ZERO_ENTRY.md](../../docs/ZERO_ENTRY.md) | User onboarding |
+| [docs/README.md](../../docs/README.md) | Full doc map |
+| [AGENTS.md](../../AGENTS.md) | Repo-wide agent notes |
+
+---
+
+## Prompt for new chat (copy)
+
+```
+Continue GPTHub v4 (OpenRouter Free Survival Engine) in versions_dep/v4.
+
+Read:
+- versions_dep/v4/CONTINUATION.md
+- versions_dep/v4/ROADMAP.md (Post-validation backlog P1–P9)
+- versions_dep/v4/ARCHITECTURE.md
+- docs/README.md
+
+Stack: Open WebUI → orchestrator (uv, FastAPI) → OpenRouter. Ports: 3000 WebUI, 8089 orchestrator.
+Validate: uv run pytest && uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=mock
+
+Task: <your task — prefer next ROADMAP item>.
+```
+
+---
+
+## Engineering rules
+
+- Python: **`uv`**; secrets in `.env` only
+- No LiteLLM in v4 product path
+- Log with `logging`; user-facing errors safe, details in logs
+- CHANGELOG under `[Unreleased]` for user-visible changes

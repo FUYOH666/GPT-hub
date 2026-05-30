@@ -9,8 +9,8 @@ os.environ.setdefault("ORCHESTRATOR_API_KEY", "k")
 
 from gpthub_orchestrator.classifier import classify_messages
 from gpthub_orchestrator.messages import apply_role_system_messages
+from gpthub_orchestrator.ops.routing_invariants import ScenarioExpect, assert_router_suggestion_invariants
 from gpthub_orchestrator.role_prompts import load_role_prompts
-from gpthub_orchestrator.router import choose_model
 from gpthub_orchestrator.settings import Settings
 
 
@@ -25,11 +25,11 @@ def _settings(**kwargs: object) -> Settings:
 
 def test_golden_greeting_fast_text_chat():
     msgs = [{"role": "user", "content": "Привет, как дела?"}]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "greeting_or_tiny"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "fast_text_chat"
-    assert rs["model_name"] == "google/gemma-3-4b-it:free"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="greeting_or_tiny", model_role="fast_text_chat"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert out[0]["role"] == "system"
@@ -38,22 +38,23 @@ def test_golden_greeting_fast_text_chat():
 
 def test_golden_simple_chat_fast_text():
     msgs = [{"role": "user", "content": "Объясни в двух предложениях, что такое список в Python."}]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "simple_chat"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "fast_text"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="simple_chat", model_role="fast_text"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
-    assert out[0]["role"] == "system"
     assert "[GPTHub role: fast_text]" in out[0]["content"]
 
 
 def test_golden_summarize_letter_doc_synthesis():
     msgs = [{"role": "user", "content": "Суммаризируй это письмо про дедлайн"}]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "summarization"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "doc_synthesis"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="summarization", model_role="doc_synthesis"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: doc_synthesis]" in out[0]["content"]
@@ -63,8 +64,11 @@ def test_golden_traceback_code_local():
     msgs = [{"role": "user", "content": "Traceback: NameError in async def foo()"}]
     cl = classify_messages(msgs)
     assert cl["task_type"] == "code_help"
-    rs = choose_model(cl, _settings(code_route_preference="local"))
-    assert rs["model_role"] == "reasoning_code_local"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(code_route_preference="local"),
+        expect=ScenarioExpect(task_type="code_help", model_role="reasoning_code_local"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: reasoning_code_local]" in out[0]["content"]
@@ -72,9 +76,11 @@ def test_golden_traceback_code_local():
 
 def test_golden_traceback_code_openrouter():
     msgs = [{"role": "user", "content": "Traceback: NameError in async def foo()"}]
-    cl = classify_messages(msgs)
-    rs = choose_model(cl, _settings(code_route_preference="openrouter"))
-    assert rs["model_role"] == "reasoning_code_openrouter"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(code_route_preference="openrouter"),
+        expect=ScenarioExpect(task_type="code_help", model_role="reasoning_code_openrouter"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: reasoning_code_openrouter]" in out[0]["content"]
@@ -82,10 +88,11 @@ def test_golden_traceback_code_openrouter():
 
 def test_golden_pdf_architecture_doc_synthesis():
     msgs = [{"role": "user", "content": "Проанализируй PDF с архитектурой системы"}]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "summarization"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "doc_synthesis"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="summarization", model_role="doc_synthesis"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: doc_synthesis]" in out[0]["content"]
@@ -101,10 +108,11 @@ def test_golden_screenshot_vision():
             ],
         }
     ]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "image_analysis"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "vision_general"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="image_analysis", model_role="vision_general"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: vision_general]" in out[0]["content"]
@@ -121,10 +129,11 @@ def test_golden_multimodal_debug_vision():
             ],
         }
     ]
-    cl = classify_messages(msgs)
-    assert cl["task_type"] == "multimodal_workflow"
-    rs = choose_model(cl, _settings())
-    assert rs["model_role"] == "vision_general"
+    rs = assert_router_suggestion_invariants(
+        messages=msgs,
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="multimodal_workflow", model_role="vision_general"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     assert "[GPTHub role: vision_general]" in out[0]["content"]
@@ -135,8 +144,11 @@ def test_client_system_appended_after_role_prompt():
         {"role": "system", "content": "Отвечай кратко по-французски."},
         {"role": "user", "content": "What is 2+2 in one sentence?"},
     ]
-    cl = classify_messages([msgs[1]])
-    rs = choose_model(cl, _settings())
+    rs = assert_router_suggestion_invariants(
+        messages=[msgs[1]],
+        settings=_settings(),
+        expect=ScenarioExpect(task_type="simple_chat", model_role="fast_text"),
+    )
     pr = load_role_prompts()
     out = apply_role_system_messages(msgs, rs["model_role"], pr)
     sys_content = out[0]["content"]

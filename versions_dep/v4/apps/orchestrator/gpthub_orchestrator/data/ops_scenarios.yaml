@@ -1,0 +1,123 @@
+# Operational validation scenarios for GPTHub v4 ops_simulator.
+# Invariants use model_role / task_type / chain membership — not fixed OpenRouter slugs.
+version: 1
+
+routing:
+  - id: greeting
+    critical: true
+    messages:
+      - role: user
+        content: "Привет, как дела?"
+    expect:
+      task_type: greeting_or_tiny
+      model_role: fast_text_chat
+
+  - id: simple_chat
+    critical: true
+    messages:
+      - role: user
+        content: "Объясни в двух предложениях, что такое список в Python."
+    expect:
+      task_type: simple_chat
+      model_role: fast_text
+
+  - id: doc_synthesis
+    critical: true
+    messages:
+      - role: user
+        content: "Суммаризируй это письмо про дедлайн"
+    expect:
+      task_type: summarization
+      model_role: doc_synthesis
+
+  - id: code_help
+    critical: true
+    code_route_preference: openrouter
+    messages:
+      - role: user
+        content: "Traceback: NameError in async def foo() — что не так?"
+    expect:
+      task_type: code_help
+      model_role: reasoning_code_openrouter
+
+  - id: code_help_local
+    critical: false
+    live_skip: true
+    code_route_preference: local
+    messages:
+      - role: user
+        content: "Traceback: NameError in async def foo()"
+    expect:
+      task_type: code_help
+      model_role: reasoning_code_local
+
+  - id: vision_screenshot
+    critical: true
+    live_soft: true
+    messages:
+      - role: user
+        content:
+          - type: text
+            text: "Что не так на этом скриншоте?"
+          - type: image_url
+            image_url:
+              url: "data:image/png;base64,iVBORw0KGgoAAAANSUh1EUgAAAAEAAAABCAYAAAAfFcSJAAAAD0lEQVQ42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    expect:
+      task_type: image_analysis
+      model_role: vision_general
+
+  - id: multimodal_debug
+    critical: false
+    live_soft: true
+    messages:
+      - role: user
+        content:
+          - type: text
+            text: "debug this UI screenshot"
+          - type: image_url
+            image_url:
+              url: "data:image/png;base64,iVBORw0KGgoAAAANSUh1EUgAAAAEAAAABCAYAAAAfFcSJAAAAD0lEQVQ42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    expect:
+      task_type: multimodal_workflow
+      model_role: vision_general
+
+fault:
+  - id: fallback_429_first_model
+    critical: true
+    mock_only: true
+    messages:
+      - role: user
+        content: "What is a Python list in one sentence?"
+    mock:
+      strategy: fail_first_chain_model
+      status: 429
+    expect:
+      http_status: 200
+      fallback_used: true
+
+  - id: exhausted_all_models
+    critical: true
+    mock_only: true
+    messages:
+      - role: user
+        content: "Explain Python lists briefly."
+    mock:
+      strategy: fail_all_models
+      status: 429
+    expect:
+      http_status: 503
+      error_type: openrouter_exhausted
+      message_contains_ru: true
+
+  - id: health_ban_after_429
+    critical: true
+    mock_only: true
+    messages:
+      - role: user
+        content: "Say hi in one word."
+    mock:
+      strategy: fail_same_model_repeated
+      status: 429
+      repeat: 3
+    expect:
+      admin_banned_nonempty: true

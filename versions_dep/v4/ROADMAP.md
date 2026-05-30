@@ -117,3 +117,26 @@ Trace: `routing_source: heuristic | curator`, `manifest_version`.
 - [x] 429 не ломает UX — fallback + понятная ошибка
 - [x] Trace объясняет выбор модели
 - [x] 90+ pytest, CI green
+- [x] Ops simulator mock в CI + live playbook
+
+---
+
+## Post-validation backlog (2026-05-30)
+
+Источники: [Staff Review](../../docs/reviews/2026-05-30-v4-staff-review.md), первый прогон `ops_simulator` (mock + live).
+
+| ID | Pri | Effort | Задача | Источник |
+|----|-----|--------|--------|----------|
+| P1 | P0 | 0.5d | Catalog refresh + curator: async lock (F2) | Staff |
+| P2 | P0 | 1d | Vision fallback: retry chain on 400/422, не только 429/5xx | Live sim |
+| P3 | P1 | 0.5d | Отдельный admin key в ZERO_ENTRY / prod checklist (F1) | Staff |
+| P4 | P1 | 0.5d | Удалить или реализовать `ingest_image_fetch_timeout` (F6) | Staff |
+| P5 | P1 | 1d | Prometheus `/metrics`: fallback_rate, exhausted_total | F9 |
+| P6 | P2 | 1d | Curator A/B report в ops_simulator (heuristic vs curator) | R7 |
+| P7 | P2 | 2d | WebUI Playwright E2E | F10 |
+| P8 | P2 | 0.5d | README screenshot/GIF | Фаза 4 |
+| P9 | P3 | 0.5d | Onboarding banner WebUI | Фаза 3 |
+
+**Simulator (готово):** `bash scripts/run_ops_simulator.sh mock|live` — см. [README.md](README.md) Validation.
+
+**Live note:** при rate limit OpenRouter live-проход засчитывает **routing OK (degraded)**, если trace содержит верные `model_role` / `task_type`, даже при HTTP 503.

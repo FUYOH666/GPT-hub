@@ -1,13 +1,14 @@
-## Что сделано
+## What changed
 
-Кратко опишите изменения (1–3 предложения).
+Brief summary (1–3 sentences).
 
-## Чеклист
+## Checklist
 
-- [ ] `uv run pytest` в `versions_dep/v3/apps/orchestrator` (если трогали оркестратор)
-- [ ] В [CHANGELOG.md](../CHANGELOG.md) добавлена запись под `[Unreleased]`, если поведение для пользователей изменилось
-- [ ] Нет секретов, IP Tailscale и путей к личным каталогам в diff
+- [ ] `uv run pytest` in `versions_dep/v4/apps/orchestrator` (if orchestrator changed)
+- [ ] `uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=mock` (if routing/catalog changed)
+- [ ] [CHANGELOG.md](../CHANGELOG.md) updated under `[Unreleased]` for user-visible changes
+- [ ] No secrets, Tailscale IPs, or personal paths in the diff
 
-## Заметки
+## Notes
 
-Опционально: как проверить вручную (Docker, сценарий в WebUI).
+Optional: manual check (Docker v4, WebUI scenario, `/trace`).

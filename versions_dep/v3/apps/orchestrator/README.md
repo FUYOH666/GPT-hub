@@ -1,3 +1,5 @@
+> **Legacy (frozen).** Active line: [v4](../../../v4/README.md). Index: [LEGACY.md](../../../LEGACY.md).
+
 # gpthub-orchestrator
 
 Python-пакет FastAPI. Запуск: см. [../../README.md](../../README.md).

@@ -1,19 +1,45 @@
-# Демо-запросы для жюри (GPTHub v3)
+# GPTHub v4 — демо-запросы и operational validation
 
-Готовые фразы для Open WebUI, подключённого к оркестратору. В селекторе модели — один публичный id **`gpt-hub`** (при `ORCHESTRATOR_MODELS_CATALOG=single_public`). После ответа декодируйте заголовок **`X-GPTHub-Trace`** (base64 → JSON) и проверьте `model_role`, `task_type`, `prompt_version` и фактический апстрим-модельный алиас.
+Готовые фразы для Open WebUI или curl к оркестратору v4. Модель в UI: **`gpt-hub`**.  
+После ответа декодируйте **`X-GPTHub-Trace`** (http://localhost:8089/trace) — `model_role`, `task_type`, `openrouter_model`, `fallback_used`, `routing_source`.
+
+## Автоматическая проверка (simulator)
+
+```bash
+cd versions_dep/v4
+# Mock (CI-safe, без OpenRouter)
+bash scripts/run_ops_simulator.sh mock
+
+# Live (нужны ORCHESTRATOR_API_KEY + OPENROUTER_API_KEY, orchestrator запущен)
+docker compose up -d --build   # или uvicorn локально
+bash scripts/run_ops_simulator.sh live
+```
+
+Отчёт: `versions_dep/v4/reports/ops-mock.json` (+ `.md` summary).
+
+## Сценарии для ручного демо
 
 | # | Сценарий | Пример запроса | Ожидаемая роль (`model_role`) |
 |---|----------|----------------|-------------------------------|
-| 1 | Приветствие / короткая реплика | «Привет», «как дела?», «Привет, как дела?» | `fast_text_chat` (`task_type`: `greeting_or_tiny`); при включённом canned ответ **без вызова LLM** — в trace `canned_response: true` |
-| 1b | Обычный Q&A без приветствия | «Объясни в двух предложениях, что такое список в Python.» | `fast_text` |
-| 2 | Документ / саммари | «Суммаризируй это письмо про дедлайн» | `doc_synthesis` |
-| 3 | Код | «Traceback: NameError в async def foo() — что не так?» | `reasoning_code_local` (при `CODE_ROUTE_PREFERENCE=local`) |
-| 4 | PDF / анализ текста | «Проанализируй PDF с архитектурой системы» | `doc_synthesis` |
-| 5 | Картинка | Вложить скрин + «Что не так на этом скриншоте?» | `vision_general` |
-| 6 | Мультимодал + отладка | Скрин + «debug this UI screenshot» | `vision_general` |
+| 1 | Приветствие | «Привет, как дела?» | `fast_text_chat` (`greeting_or_tiny`) |
+| 2 | Обычный Q&A | «Объясни в двух предложениях, что такое список в Python.» | `fast_text` |
+| 3 | Документ / саммари | «Суммаризируй это письмо про дедлайн» | `doc_synthesis` |
+| 4 | Код | «Traceback: NameError…» | `reasoning_code_openrouter` (при `CODE_ROUTE_PREFERENCE=openrouter`) |
+| 5 | Картинка | Скрин + «Что не так на этом скриншоте?» | `vision_general` |
+| 6 | Stream | Тот же запрос с `"stream": true` | trace: `stream_fallback`, возможен `fallback_used` |
 
-**Что сказать жюри:** один чат, разные типы запросов — система выбирает режим и модель; в trace видно классификацию и версию промптов.
+## Ops endpoints
 
-Если в UI появляется блок «Рассуждение» на обычных ответах: оркестратор по умолчанию режет `reasoning*` в payload и шлёт `reasoning.exclude` upstream — см. [OPENWEBUI_ROLES.md](OPENWEBUI_ROLES.md) (Reasoning Tags, чеклист).
+| Endpoint | Назначение |
+|----------|------------|
+| `GET /readyz` | OpenRouter + live catalog meta |
+| `GET /trace` | Декодер trace (не публиковать наружу) |
+| `GET /v1/admin/catalog` | Bearer admin — bans, quota, curator |
 
-См. также: [PROMPT_PRECEDENCE.md](PROMPT_PRECEDENCE.md), [versions_dep/v3/ROADMAP.md](../versions_dep/v3/ROADMAP.md) фаза 0.5.
+## Fault scenarios (только mock simulator)
+
+- **429 на первой модели** → `fallback_used: true`
+- **429 на всех** → `503 openrouter_exhausted` + `message_ru`
+- **Health ban** → slug в `model_health.banned` (admin)
+
+См.: [versions_dep/v4/README.md](../versions_dep/v4/README.md), [ZERO_ENTRY.md](ZERO_ENTRY.md), Staff review [reviews/2026-05-30-v4-staff-review.md](reviews/2026-05-30-v4-staff-review.md).

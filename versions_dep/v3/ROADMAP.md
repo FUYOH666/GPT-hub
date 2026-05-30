@@ -1,7 +1,9 @@
+> **Legacy (frozen).** Active line: [v4](../v4/README.md). Index: [LEGACY.md](../LEGACY.md).
+
 # GPTHub Workspace v3 — дорожная карта
 
 Архитектурный рецепт: [ARCHITECTURE.md](ARCHITECTURE.md).  
-**v2_c2** — заморожен как эталон LiteLLM/Open WebUI; активная разработка — **только v3**.
+**v2_c2** — заморожен как эталон LiteLLM/Open WebUI. **Активная разработка — v4** ([ROADMAP](../v4/ROADMAP.md)).
 
 ---
 

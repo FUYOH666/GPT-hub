@@ -1,23 +1,41 @@
 # Contributing
 
-Спасибо за интерес к репозиторию. Кратко, как не ломать стек и что проверить перед PR.
+Thank you for contributing to GPT-hub.
 
-## Окружение
+## Active stack (v4)
 
-- **Оркестратор (Python):** `uv` — см. [versions_dep/v3/apps/orchestrator/README.md](versions_dep/v3/apps/orchestrator/README.md).
-- **Docker v3:** [versions_dep/v3/README.md](versions_dep/v3/README.md) — `cp .env.example .env`, без коммита `.env` и секретов.
+- **Orchestrator:** [versions_dep/v4/apps/orchestrator](versions_dep/v4/apps/orchestrator) — Python 3.12+, **`uv`**
+- **Docker:** [versions_dep/v4/docker-compose.yml](versions_dep/v4/docker-compose.yml) — `cp .env.example .env` (never commit `.env`)
 
-## Перед PR
+## Before a pull request
 
-1. Из `versions_dep/v3/apps/orchestrator`: `uv sync --extra dev` и `uv run pytest`.
-2. Если менялись `model_roles.yaml`, `role_prompts.yaml` или код оркестратора — пересоберите образ: `docker compose build orchestrator` (из `versions_dep/v3`).
-3. Секреты, TailScale IP, внутренние id моделей ASR — только в локальном `.env`, не в git.
+From `versions_dep/v4/apps/orchestrator`:
 
-## Документация
+```bash
+uv sync --extra dev
+uv run pytest
+uv run python -m gpthub_orchestrator.tools.ops_simulator --mode=mock
+```
 
-- Публичные изменения поведения — строка в [CHANGELOG.md](CHANGELOG.md) под `[Unreleased]`.
-- Ссылки на архитектуру: [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md).
+If you changed orchestrator code or data YAML, rebuild the image:
 
-## Поведение в общении
+```bash
+cd versions_dep/v4
+docker compose build orchestrator
+```
 
-См. [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+**Secrets:** no API keys, Tailscale IPs, or personal paths in git — only placeholders in `.env.example`.
+
+## Documentation
+
+- User-visible behavior changes → entry under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md)
+- Doc map: [docs/README.md](docs/README.md)
+- Architecture: [versions_dep/v4/ARCHITECTURE.md](versions_dep/v4/ARCHITECTURE.md)
+
+## Legacy (v3 and earlier)
+
+Touch legacy code only when fixing or documenting that line. Tests: `versions_dep/v3/apps/orchestrator` with the same `uv` workflow.
+
+## Code of conduct
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

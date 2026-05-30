@@ -1,3 +1,5 @@
+> **Legacy (frozen).** Active line: [v4](../v4/README.md). Index: [LEGACY.md](../LEGACY.md).
+
 # GPTHub Workspace v3 — архитектура (итоговый рецепт)
 
 Цель: **не «чат с вложениями в одну VLM»**, а **orchestration runtime** с понятным пайплайном и trace.
