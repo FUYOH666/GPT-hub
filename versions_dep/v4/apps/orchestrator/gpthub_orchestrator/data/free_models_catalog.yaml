@@ -1,27 +1,27 @@
-# Baseline packaged catalog for tests and offline fallback.
-# Live refresh writes to free_models_catalog.runtime.yaml (not this file).
+# CI/offline baseline only — NOT prod source of truth.
+# Prod uses live refresh → free_models_catalog.runtime.yaml
 version: 1
-generated_at: "2026-01-01T00:00:00Z"
+generated_at: "2026-05-30T00:00:00Z"
 text_fast:
-  - google/gemma-3-4b-it:free
   - liquid/lfm-2.5-1.2b-instruct:free
+  - meta-llama/llama-3.2-3b-instruct:free
   - nvidia/nemotron-nano-9b-v2:free
-  - qwen/qwen3-4b:free
+  - google/gemma-4-26b-a4b-it:free
 text_code:
-  - qwen/qwen3-4b:free
-  - google/gemma-3-4b-it:free
+  - qwen/qwen3-coder:free
+  - poolside/laguna-m.1:free
+  - qwen/qwen3-next-80b-a3b-instruct:free
   - nvidia/nemotron-nano-9b-v2:free
-  - liquid/lfm-2.5-1.2b-instruct:free
 text_doc:
-  - google/gemma-3-12b-it:free
-  - google/gemma-3-4b-it:free
-  - nvidia/nemotron-nano-9b-v2:free
-  - qwen/qwen3-4b:free
+  - deepseek/deepseek-v4-flash:free
+  - nvidia/nemotron-3-super-120b-a12b:free
+  - qwen/qwen3-next-80b-a3b-instruct:free
+  - meta-llama/llama-3.3-70b-instruct:free
 vision:
-  - qwen/qwen3.6-plus:free
-  - google/gemma-3-4b-it:free
-  - nvidia/nemotron-nano-12b-v2-vl:free
+  - google/gemma-4-31b-it:free
   - google/gemma-4-26b-a4b-it:free
   - moonshotai/kimi-k2.6:free
+  - nvidia/nemotron-nano-12b-v2-vl:free
+  - qwen/qwen3-next-80b-a3b-instruct:free
 fallback:
-  - google/gemma-3-4b-it:free
+  - liquid/lfm-2.5-1.2b-instruct:free

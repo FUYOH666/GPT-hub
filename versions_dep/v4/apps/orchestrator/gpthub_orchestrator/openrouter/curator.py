@@ -125,10 +125,18 @@ async def run_curator(
     models: list[dict[str, Any]],
     *,
     base_catalog: FreeModelsCatalog,
+    merge_mode: str | None = None,
 ) -> RoutingManifest:
     digest = build_model_digest(models, limit=settings.openrouter_curator_digest_limit)
     manifest = await call_curator_llm(http, settings, digest)
-    apply_curator_manifest(manifest, base_catalog=base_catalog)
+    allowed = {row["id"] for row in digest}
+    mode = merge_mode or settings.openrouter_curator_merge_mode
+    apply_curator_manifest(
+        manifest,
+        base_catalog=base_catalog,
+        merge_mode=mode,  # type: ignore[arg-type]
+        allowed_pool=allowed,
+    )
     if manifest.rationale_short:
         logger.info("curator_rationale %s", manifest.rationale_short)
     return manifest

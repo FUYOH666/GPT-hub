@@ -38,14 +38,18 @@ bash scripts/verify_v4.sh   # smoke (нужен ORCHESTRATOR_API_KEY в env)
 
 ## OpenRouter free-only
 
-- Baseline каталог: [`free_models_catalog.yaml`](apps/orchestrator/gpthub_orchestrator/data/free_models_catalog.yaml)
-- Live refresh при старте → `free_models_catalog.runtime.yaml` (не перезаписывает baseline)
+- **Live catalog** at startup + optional periodic refresh (`OPENROUTER_CATALOG_REFRESH_INTERVAL_HOURS`)
+- **Role-specific chains:** `text_fast`, `text_code`, `text_doc`, `vision` (not one list copied 4×)
+- **Micro-probe** on refresh (default ON): head slug per section; failures demoted to tail
+- **Bandit EMA** (default ON): resort chains from traffic stats every 30 min
+- Baseline for offline tests: [`free_models_catalog.yaml`](apps/orchestrator/gpthub_orchestrator/data/free_models_catalog.yaml)
+- Runtime persist: `free_models_catalog.runtime.yaml`
 - Роли → цепочки: [`model_roles.yaml`](apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml)
-- **Key pool:** `OPENROUTER_KEYS=key1:50,key2:1000` — rotation, RPM throttle, cooldown на 429
+- **Key pool:** `OPENROUTER_KEYS=key1:50,key2:1000` — rotation, RPM throttle, cooldown on 429
 - **Fallback:** model-first, then key rotation (non-stream **и** stream)
 - **Health ban:** после N×429 slug временно исключается из цепочки (TTL)
-- **LLM Curator** (opt-in): async ranking free-моделей → `RoutingManifest`
-- Trace: `routing_source`, `manifest_version`, `openrouter_model`, `model_attempts`
+- **LLM Curator** (opt-in): runs **after** refresh, overlay merge on heuristic pools
+- Trace: `routing_source` (`heuristic` | `curator` | `bandit`), `manifest_version`, `openrouter_model`, `model_attempts`
 
 ## Troubleshooting 429
 
@@ -63,7 +67,9 @@ bash scripts/verify_v4.sh   # smoke (нужен ORCHESTRATOR_API_KEY в env)
 - `ORCHESTRATOR_API_KEY` — Bearer для WebUI → orchestrator
 - `OPENROUTER_API_KEY` / `OPENROUTER_KEYS` — ключи OpenRouter
 - `OPENROUTER_CATALOG_REFRESH_INTERVAL_HOURS=6` — периодический re-fetch
-- `OPENROUTER_CURATOR_ENABLED=true` — фоновый LLM-куратор
+- `OPENROUTER_PROBE_ON_REFRESH=true` — micro-probe после refresh (default ON)
+- `OPENROUTER_BANDIT_ENABLED=true` — EMA resort (default ON)
+- `OPENROUTER_CURATOR_ENABLED=true` — LLM curator после refresh (overlay)
 - `ORCHESTRATOR_OPENROUTER_FALLBACK=true` — цепочка моделей при 429/5xx
 
 ## Validation
@@ -74,11 +80,19 @@ bash scripts/verify_v4.sh   # smoke (нужен ORCHESTRATOR_API_KEY в env)
 bash scripts/verify_v4.sh              # smoke (1 запрос)
 bash scripts/run_ops_simulator.sh mock # CI-safe: routing + fault injection
 bash scripts/run_ops_simulator.sh live  # OpenRouter live (routing + degraded upstream)
+curl -s -H "Authorization: Bearer $ORCHESTRATOR_API_KEY" \
+  http://localhost:8089/v1/admin/catalog | jq '.catalog_diff, .probe_results, .bandit_stats, .active_catalog.text_fast, .active_catalog.text_code'
 ```
 
-Отчёты: `reports/ops-mock.json`, `reports/ops-live.json` (+ `.md` summary).  
-Staff review: [docs/reviews/2026-05-30-v4-staff-review.md](../../docs/reviews/2026-05-30-v4-staff-review.md).  
-Demo prompts: [docs/DEMO_PROMPTS.md](../../docs/DEMO_PROMPTS.md).
+**Live checklist:**
+
+1. Startup refresh → `source: openrouter_live`; `text_fast` ≠ `text_code`
+2. `probe_results` visible in admin (pass/fail per section)
+3. After traffic → `bandit_stats.by_section` accumulates samples
+4. 429 on slug → health ban → chain skips slug
+5. Curator enabled → `routing_source: curator`; ops invariants still pass
+
+Отчёты: `reports/ops-mock.json`, `reports/ops-live.json` (+ `.md` summary).
 
 ## Тесты
 

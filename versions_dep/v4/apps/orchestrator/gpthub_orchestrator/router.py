@@ -21,6 +21,15 @@ from gpthub_orchestrator.settings import Settings
 
 logger = logging.getLogger(__name__)
 
+_ROLE_CATALOG_SECTION: dict[str, str] = {
+    ROLE_FAST_TEXT_CHAT: "text_fast",
+    ROLE_FAST_TEXT: "text_fast",
+    ROLE_REASONING_LOCAL: "text_code",
+    ROLE_REASONING_OPENROUTER: "text_code",
+    ROLE_DOC: "text_doc",
+    ROLE_VISION: "vision",
+}
+
 
 def choose_model(classification: dict[str, Any], settings: Settings) -> dict[str, Any]:
     modalities = classification.get("modalities") or ["text"]
@@ -54,6 +63,7 @@ def choose_model(classification: dict[str, Any], settings: Settings) -> dict[str
     meta = {
         "model_name": chain[0],
         "model_role": role_key,
+        "catalog_section": _ROLE_CATALOG_SECTION.get(role_key, "text_fast"),
         "fallback_aliases": chain,
         "openrouter_chain": chain,
         "catalog_version": catalog.version,

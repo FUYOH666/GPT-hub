@@ -21,7 +21,7 @@
 
 - **Classifier → router → chain** is deterministic and well-tested offline (`test_routing_golden.py`), but golden tests **hardcode catalog slugs** — breaks when live refresh reorder chains (fixed in this validation sprint via invariants).
 - **Stream fallback** (`client.chat_completions_stream`) retries before bytes are sent — correct; once stream starts, no mid-stream retry (documented behavior).
-- **Curator + periodic refresh** both mutate runtime catalog **without lock** — race possible: refresh can overwrite curator manifest between requests. Low probability on single instance; should-fix for production.
+- **Curator + periodic refresh** both mutate runtime catalog **under `CatalogCoordinator` lock** — resolved 2026-05-30 (control loop sprint).
 - **`ingest_image_fetch_timeout`** in `settings.py` has **no consumer** — image URLs pass through to OpenRouter unchanged; dead config.
 - **Health ban** is in-memory only — lost on restart; acceptable for MVP, document clearly.
 

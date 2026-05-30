@@ -39,6 +39,38 @@ def test_parse_curator_json_valid():
     assert m.roles.fast_text[0] == "a:free"
 
 
+def test_apply_curator_overlay_keeps_unknown_out():
+    base = FreeModelsCatalog(
+        text_fast=["a:free", "b:free"],
+        text_code=["c:free"],
+        text_doc=["d:free"],
+        vision=["v:free"],
+        fallback=["a:free"],
+    )
+    manifest = RoutingManifest.model_validate(
+        {
+            "version": 2,
+            "roles": {
+                "fast_text": ["b:free", "z:free"],
+                "text_code": ["c:free"],
+                "text_doc": ["d:free"],
+                "vision": ["v:free"],
+            },
+        }
+    )
+    apply_curator_manifest(
+        manifest,
+        base_catalog=base,
+        merge_mode="overlay",
+        allowed_pool={"a:free", "b:free", "c:free", "d:free", "v:free"},
+    )
+    from gpthub_orchestrator.openrouter.catalog import load_free_models_catalog
+
+    cat = load_free_models_catalog()
+    assert cat.text_fast[0] == "b:free"
+    assert "z:free" not in cat.text_fast
+
+
 def test_apply_curator_manifest_overrides_runtime():
     base = FreeModelsCatalog(
         text_fast=["old:free"],
@@ -59,7 +91,7 @@ def test_apply_curator_manifest_overrides_runtime():
             },
         }
     )
-    apply_curator_manifest(manifest, base_catalog=base)
+    apply_curator_manifest(manifest, base_catalog=base, merge_mode="replace")
     assert routing_source() == "curator"
     from gpthub_orchestrator.openrouter.catalog import load_free_models_catalog
 

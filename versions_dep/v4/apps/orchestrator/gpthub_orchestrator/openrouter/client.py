@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import Any, AsyncIterator
 
 import httpx
@@ -11,6 +12,7 @@ import httpx
 from gpthub_orchestrator.openrouter.fallback import is_retryable_status
 from gpthub_orchestrator.openrouter.key_pool import KeyPool, KeyPoolEntry
 from gpthub_orchestrator.openrouter.model_health import ModelHealthTracker
+from gpthub_orchestrator.openrouter.model_stats import get_model_stats
 from gpthub_orchestrator.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -74,6 +76,7 @@ class OpenRouterClient:
         body: dict[str, Any],
         *,
         model_chain: list[str],
+        catalog_section: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Non-stream completion with model-first then key rotation fallback."""
         chain = self.filter_model_chain(model_chain)
@@ -96,7 +99,16 @@ class OpenRouterClient:
                     break
                 attempt_body = dict(body)
                 attempt_body["model"] = model
+                t0 = time.monotonic()
                 status, payload, raw_text = await self._post_completion(attempt_body, entry)
+                latency_ms = (time.monotonic() - t0) * 1000.0
+                get_model_stats().record_attempt(
+                    section=catalog_section,
+                    slug=model,
+                    success=status < 400,
+                    status_code=status,
+                    latency_ms=latency_ms,
+                )
                 log_entry: dict[str, Any] = {
                     "model": model,
                     "openrouter_model": model,
@@ -151,6 +163,7 @@ class OpenRouterClient:
         body: dict[str, Any],
         *,
         model_chain: list[str],
+        catalog_section: str | None = None,
     ) -> tuple[AsyncIterator[bytes], dict[str, Any]]:
         """Stream with model-first fallback (same key, then key rotation)."""
         chain = self.filter_model_chain(model_chain)
@@ -197,13 +210,22 @@ class OpenRouterClient:
                 attempts_log.append(log_entry)
 
                 req = self._http.build_request("POST", url, json=attempt_body, headers=headers)
+                t0 = time.monotonic()
                 resp = await self._http.send(req, stream=True)
+                latency_ms = (time.monotonic() - t0) * 1000.0
 
                 if resp.status_code >= 400:
                     raw = await resp.aread()
                     await resp.aclose()
                     preview = raw[:1200].decode("utf-8", errors="replace")
                     log_entry["status_code"] = resp.status_code
+                    get_model_stats().record_attempt(
+                        section=catalog_section,
+                        slug=model,
+                        success=False,
+                        status_code=resp.status_code,
+                        latency_ms=latency_ms,
+                    )
                     logger.warning(
                         "openrouter_stream_attempt_failed model=%s status=%s",
                         model,
@@ -219,6 +241,13 @@ class OpenRouterClient:
 
                 self._key_pool.record_success(entry)
                 self._health.record_success(model)
+                get_model_stats().record_attempt(
+                    section=catalog_section,
+                    slug=model,
+                    success=True,
+                    status_code=resp.status_code,
+                    latency_ms=latency_ms,
+                )
                 meta = self._build_meta(
                     model=model,
                     key_index=key_index,

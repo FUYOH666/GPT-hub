@@ -12,12 +12,15 @@ os.environ["AUTO_ROUTE_MODEL"] = "true"
 os.environ["ORCHESTRATOR_OPENROUTER_FALLBACK"] = "true"
 
 from gpthub_orchestrator.main import app  # noqa: E402
+from gpthub_orchestrator.openrouter.catalog import load_free_models_catalog
 from gpthub_orchestrator.openrouter.client import OpenRouterClient
 from gpthub_orchestrator.settings import Settings  # noqa: E402
 
 
 @pytest.mark.asyncio
 async def test_non_stream_retries_on_429_then_200():
+    catalog = load_free_models_catalog()
+    head = catalog.text_fast[0]
     calls: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -25,7 +28,7 @@ async def test_non_stream_retries_on_429_then_200():
         body = json.loads(request.content.decode())
         model = str(body.get("model"))
         calls.append(model)
-        if model == "google/gemma-3-4b-it:free":
+        if model == head:
             return httpx.Response(429, json={"error": "rate_limited"})
         return httpx.Response(
             200,
@@ -64,7 +67,7 @@ async def test_non_stream_retries_on_429_then_200():
                 },
             )
         assert r.status_code == 200
-        assert calls[0] == "google/gemma-3-4b-it:free"
+        assert calls[0] == head
         assert len(calls) >= 2
         trace_hdr = r.headers.get("X-GPTHub-Trace")
         assert trace_hdr

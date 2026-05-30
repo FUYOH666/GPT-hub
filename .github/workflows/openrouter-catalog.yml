@@ -1,63 +1,17 @@
+# Disabled during active v4 control-loop development.
+# Prod catalog comes from orchestrator live refresh, not weekly packaged YAML commits.
+# Re-enable manually via workflow_dispatch when baseline drift checks are needed again.
+
 name: OpenRouter free catalog check
 
 on:
-  schedule:
-    - cron: "0 6 * * 1"
   workflow_dispatch:
 
 permissions:
-  contents: write
-  issues: write
+  contents: read
 
 jobs:
-  refresh-catalog:
+  skip:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: versions_dep/v4/apps/orchestrator
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.3"
-
-      - name: Sync dependencies
-        run: uv sync --extra dev
-
-      - name: Fetch and diff catalog
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: |
-          set -euo pipefail
-          CATALOG=gpthub_orchestrator/data/free_models_catalog.yaml
-          cp "$CATALOG" /tmp/catalog_before.yaml
-          if [ -z "${OPENROUTER_API_KEY:-}" ]; then
-            echo "OPENROUTER_API_KEY secret not set — using --no-auth (public list)"
-            uv run python -m gpthub_orchestrator.tools.list_free_models --no-auth --write-catalog --output /tmp/catalog_new.yaml
-          else
-            uv run python -m gpthub_orchestrator.tools.list_free_models --write-catalog --output /tmp/catalog_new.yaml
-          fi
-          if diff -q /tmp/catalog_before.yaml /tmp/catalog_new.yaml >/dev/null 2>&1; then
-            echo "No catalog changes detected."
-            exit 0
-          fi
-          echo "Catalog diff:"
-          diff -u /tmp/catalog_before.yaml /tmp/catalog_new.yaml || true
-          cp /tmp/catalog_new.yaml "$CATALOG"
-
-      - name: Create PR if catalog changed
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bot/openrouter-catalog-refresh
-          delete-branch: true
-          title: "chore(v4): refresh OpenRouter free models catalog"
-          body: |
-            Weekly refresh of `free_models_catalog.yaml` from OpenRouter API.
-
-            Review slug changes before merge — free tier catalog shifts frequently.
-          commit-message: "chore(v4): refresh OpenRouter free models catalog"
-          add-paths: |
-            versions_dep/v4/apps/orchestrator/gpthub_orchestrator/data/free_models_catalog.yaml
+      - run: echo "Weekly catalog PR disabled — see versions_dep/v4 README Validation"

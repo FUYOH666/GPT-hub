@@ -89,8 +89,13 @@ def build_catalog_from_rows(
     text_rows: list[dict[str, Any]],
     vision_rows: list[dict[str, Any]],
     generated_at: str,
+    text_code_rows: list[dict[str, Any]] | None = None,
+    text_doc_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Legacy helper; prefer build_catalog_from_api_models / role_scorer pipeline."""
     text_ids = [str(r["id"]) for r in text_rows if r.get("id")]
+    code_ids = [str(r["id"]) for r in (text_code_rows or text_rows) if r.get("id")]
+    doc_ids = [str(r["id"]) for r in (text_doc_rows or text_rows) if r.get("id")]
     vision_ids = [str(r["id"]) for r in vision_rows if r.get("id")]
     if not text_ids:
         raise ValueError("no text models for catalog")
@@ -101,8 +106,8 @@ def build_catalog_from_rows(
         "version": 1,
         "generated_at": generated_at,
         "text_fast": text_ids[:4],
-        "text_code": text_ids[:4],
-        "text_doc": text_ids[:4],
+        "text_code": code_ids[:4],
+        "text_doc": doc_ids[:4],
         "vision": vision_ids[:5],
         "fallback": fallback,
     }

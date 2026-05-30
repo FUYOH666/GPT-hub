@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Auto catalog control loop (v4):** `role_scorer.py` (differentiated `text_fast` / `text_code` / `text_doc` / `vision`), `catalog_pipeline.py` (diff + lock), `catalog_probe.py` (default ON), `model_stats.py` (bandit EMA), curator overlay merge after refresh; admin `/v1/admin/catalog` exposes `catalog_diff`, `probe_results`, `bandit_stats`.
+
+### Added
+
 - **Documentation restructure:** [docs/README.md](docs/README.md) hub, slim root [README.md](README.md), [docs/DOC_INVENTORY.md](docs/DOC_INVENTORY.md); hackathon docs archived to [docs/archive/hackathon/](docs/archive/hackathon/) with stubs at old paths; [docs/archive/hackathon/ORIGIN.md](docs/archive/hackathon/ORIGIN.md).
 
 ### Changed

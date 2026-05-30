@@ -24,18 +24,30 @@ from gpthub_orchestrator.greeting_canned import (
 )
 from gpthub_orchestrator.messages import apply_role_system_messages
 from gpthub_orchestrator.openrouter.catalog import load_free_models_catalog
-from gpthub_orchestrator.openrouter.catalog_refresh import (
-    CatalogRefreshError,
-    fetch_models_async,
-    refresh_catalog_from_openrouter,
+from gpthub_orchestrator.openrouter.catalog_pipeline import (
+    PIPELINE_VERSION,
+    get_catalog_coordinator,
+    reset_catalog_coordinator,
+    run_catalog_refresh_pipeline,
 )
+from gpthub_orchestrator.openrouter.catalog_refresh import CatalogRefreshError, fetch_models_async
 from gpthub_orchestrator.openrouter.client import (
     OPENROUTER_EXHAUSTED_MESSAGE_RU,
     OpenRouterClient,
     OpenRouterExhaustedError,
 )
 from gpthub_orchestrator.openrouter.curator import run_curator
-from gpthub_orchestrator.openrouter.routing_manifest import curator_manifest, routing_source
+from gpthub_orchestrator.openrouter.model_stats import (
+    configure_model_stats,
+    get_model_stats,
+    reset_model_stats,
+)
+from gpthub_orchestrator.openrouter.routing_manifest import (
+    curator_manifest,
+    reset_curator_state,
+    routing_source,
+    set_routing_source,
+)
 from gpthub_orchestrator.public_models import build_models_list, map_facade_model_to_backend
 from gpthub_orchestrator.role_prompts import load_role_prompts
 from gpthub_orchestrator.router import choose_model
@@ -95,24 +107,92 @@ def _catalog_persist_path(settings: Settings) -> Path | None:
     return _PACKAGE_CATALOG.parent / "free_models_catalog.runtime.yaml"
 
 
-async def _refresh_catalog_task(app: FastAPI, settings: Settings, http: httpx.AsyncClient) -> None:
-    persist = _catalog_persist_path(settings)
-    catalog = await refresh_catalog_from_openrouter(
-        http,
-        api_key=settings.openrouter_api_key,
-        api_base=settings.openrouter_api_base,
-        text_limit=settings.openrouter_catalog_text_limit,
-        vision_limit=settings.openrouter_catalog_vision_limit,
-        persist_path=persist,
-    )
-    app.state.catalog_refresh = {
-        "ok": True,
-        "source": "openrouter_live",
-        "generated_at": catalog.generated_at,
-        "text_fast": catalog.text_fast,
-        "vision": catalog.vision,
-        "error": None,
+def _catalog_refresh_state(
+    *,
+    ok: bool,
+    source: str,
+    catalog: Any = None,
+    diff: dict[str, Any] | None = None,
+    probe_results: list[dict[str, Any]] | None = None,
+    error: str | None = None,
+) -> dict[str, Any]:
+    state: dict[str, Any] = {
+        "ok": ok,
+        "source": source,
+        "pipeline_version": PIPELINE_VERSION,
+        "error": error,
+        "routing_source": routing_source(),
     }
+    if catalog is not None:
+        state["generated_at"] = catalog.generated_at
+        state["text_fast"] = catalog.text_fast
+        state["text_code"] = catalog.text_code
+        state["text_doc"] = catalog.text_doc
+        state["vision"] = catalog.vision
+    if diff is not None:
+        state["catalog_diff"] = diff
+    if probe_results is not None:
+        state["probe_results"] = probe_results
+    return state
+
+
+async def _run_catalog_cycle(
+    app: FastAPI,
+    settings: Settings,
+    http: httpx.AsyncClient,
+    *,
+    key_pool: Any = None,
+) -> None:
+    """Refresh catalog (score + probe), then optional curator — under coordinator lock."""
+    coordinator = get_catalog_coordinator()
+    persist = _catalog_persist_path(settings)
+
+    async def _inner() -> None:
+        set_routing_source("heuristic")
+        catalog, diff = await run_catalog_refresh_pipeline(
+            http,
+            settings,
+            coordinator,
+            persist_path=persist,
+            key_pool=key_pool,
+            run_probes=settings.openrouter_probe_on_refresh,
+        )
+        probe_results = list(coordinator.last_probe_results)
+        curator_state: dict[str, Any] = {"status": "skipped"}
+        if settings.openrouter_curator_enabled:
+            app.state.curator = {"status": "running", "routing_source": routing_source()}
+            try:
+                models = await fetch_models_async(
+                    http,
+                    api_base=settings.openrouter_api_base,
+                    api_key=settings.openrouter_api_key,
+                )
+                manifest = await run_curator(http, settings, models, base_catalog=catalog)
+                curator_state = {
+                    "status": "ok",
+                    "routing_source": routing_source(),
+                    "manifest_version": manifest.version,
+                    "rationale_short": manifest.rationale_short,
+                }
+            except Exception as e:
+                logger.warning("curator_after_refresh_failed error=%s", e)
+                curator_state = {
+                    "status": "failed",
+                    "routing_source": routing_source(),
+                    "error": str(e),
+                }
+        else:
+            curator_state = {"status": "disabled"}
+        app.state.curator = curator_state
+        app.state.catalog_refresh = _catalog_refresh_state(
+            ok=True,
+            source="openrouter_live",
+            catalog=load_free_models_catalog(settings.free_models_catalog_path),
+            diff=diff,
+            probe_results=probe_results,
+        )
+
+    await coordinator.run_locked(_inner)
 
 
 async def _periodic_catalog_refresh(app: FastAPI, settings: Settings, http: httpx.AsyncClient) -> None:
@@ -120,42 +200,38 @@ async def _periodic_catalog_refresh(app: FastAPI, settings: Settings, http: http
     if interval_h <= 0:
         return
     interval_s = interval_h * 3600.0
+    or_client: OpenRouterClient = app.state.openrouter
     while True:
         await asyncio.sleep(interval_s)
         try:
-            await _refresh_catalog_task(app, settings, http)
+            await _run_catalog_cycle(app, settings, http, key_pool=or_client.key_pool)
             logger.info("periodic_catalog_refresh_ok interval_hours=%s", interval_h)
         except Exception as e:
             logger.warning("periodic_catalog_refresh_failed error=%s", e)
 
 
-async def _curator_background(app: FastAPI, settings: Settings, http: httpx.AsyncClient) -> None:
-    if not settings.openrouter_curator_enabled:
-        app.state.curator = {"status": "disabled"}
+async def _bandit_resort_loop(app: FastAPI, settings: Settings) -> None:
+    if not settings.openrouter_bandit_enabled:
         return
-    app.state.curator = {"status": "running", "routing_source": routing_source()}
-    try:
-        models = await fetch_models_async(
-            http,
-            api_base=settings.openrouter_api_base,
-            api_key=settings.openrouter_api_key,
-        )
-        base = load_free_models_catalog(settings.free_models_catalog_path)
-        manifest = await run_curator(http, settings, models, base_catalog=base)
-        app.state.curator = {
-            "status": "ok",
-            "routing_source": routing_source(),
-            "manifest_version": manifest.version,
-            "rationale_short": manifest.rationale_short,
-        }
-        logger.info("curator_background_ok manifest_version=%s", manifest.version)
-    except Exception as e:
-        logger.warning("curator_background_failed error=%s", e)
-        app.state.curator = {
-            "status": "failed",
-            "routing_source": routing_source(),
-            "error": str(e),
-        }
+    interval_s = settings.openrouter_bandit_resort_interval_minutes * 60.0
+    coordinator = get_catalog_coordinator()
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            or_client: OpenRouterClient = app.state.openrouter
+
+            async def _inner() -> None:
+                catalog = load_free_models_catalog(settings.free_models_catalog_path)
+                banned = {
+                    str(x.get("model") or "")
+                    for x in or_client.model_health.snapshot().get("banned", [])
+                }
+                get_model_stats().resort_catalog(catalog, banned=banned)
+
+            await coordinator.run_locked(_inner)
+            logger.info("bandit_resort_tick interval_minutes=%s", settings.openrouter_bandit_resort_interval_minutes)
+        except Exception as e:
+            logger.warning("bandit_resort_failed error=%s", e)
 
 
 @asynccontextmanager
@@ -163,6 +239,10 @@ async def lifespan(app: FastAPI):
     settings = load_settings()
     _configure_logging(settings.log_level)
     load_role_prompts(settings.role_prompts_path)
+    reset_catalog_coordinator()
+    reset_curator_state()
+    reset_model_stats()
+    configure_model_stats(min_samples_for_resort=settings.openrouter_bandit_min_samples)
     sec = float(settings.openrouter_timeout_seconds)
     timeout = httpx.Timeout(
         connect=min(60.0, sec),
@@ -177,61 +257,46 @@ async def lifespan(app: FastAPI):
         app.state.curator = {"status": "pending"}
 
         if settings.openrouter_refresh_catalog_on_startup:
-            persist = _catalog_persist_path(settings)
             try:
-                catalog = await refresh_catalog_from_openrouter(
-                    client,
-                    api_key=settings.openrouter_api_key,
-                    api_base=settings.openrouter_api_base,
-                    text_limit=settings.openrouter_catalog_text_limit,
-                    vision_limit=settings.openrouter_catalog_vision_limit,
-                    persist_path=persist,
-                )
-                app.state.catalog_refresh = {
-                    "ok": True,
-                    "source": "openrouter_live",
-                    "generated_at": catalog.generated_at,
-                    "text_fast": catalog.text_fast,
-                    "vision": catalog.vision,
-                    "error": None,
-                }
+                await _run_catalog_cycle(app, settings, client)
             except CatalogRefreshError as e:
                 logger.warning("catalog_refresh_failed error=%s", e)
-                app.state.catalog_refresh = {
-                    "ok": False,
-                    "source": "packaged_fallback",
-                    "error": str(e),
-                }
+                app.state.catalog_refresh = _catalog_refresh_state(
+                    ok=False,
+                    source="packaged_fallback",
+                    error=str(e),
+                )
                 if settings.openrouter_catalog_fail_on_refresh_error:
                     raise
                 load_free_models_catalog(settings.free_models_catalog_path)
             except httpx.HTTPError as e:
                 logger.exception("catalog_refresh_http_error")
-                app.state.catalog_refresh = {
-                    "ok": False,
-                    "source": "packaged_fallback",
-                    "error": str(e),
-                }
+                app.state.catalog_refresh = _catalog_refresh_state(
+                    ok=False,
+                    source="packaged_fallback",
+                    error=str(e),
+                )
                 if settings.openrouter_catalog_fail_on_refresh_error:
                     raise CatalogRefreshError(str(e)) from e
                 load_free_models_catalog(settings.free_models_catalog_path)
         else:
             load_free_models_catalog(settings.free_models_catalog_path)
+            app.state.curator = {"status": "disabled"}
 
         app.state.openrouter = OpenRouterClient(client, settings)
 
         refresh_task: asyncio.Task[None] | None = None
-        curator_task: asyncio.Task[None] | None = None
+        bandit_task: asyncio.Task[None] | None = None
         if settings.openrouter_catalog_refresh_interval_hours > 0:
             refresh_task = asyncio.create_task(_periodic_catalog_refresh(app, settings, client))
-        if settings.openrouter_curator_enabled:
-            curator_task = asyncio.create_task(_curator_background(app, settings, client))
-        else:
+        if settings.openrouter_bandit_enabled:
+            bandit_task = asyncio.create_task(_bandit_resort_loop(app, settings))
+        elif not settings.openrouter_curator_enabled and not settings.openrouter_refresh_catalog_on_startup:
             app.state.curator = {"status": "disabled"}
 
         yield
 
-        for task in (refresh_task, curator_task):
+        for task in (refresh_task, bandit_task):
             if task is not None:
                 task.cancel()
                 try:
@@ -372,11 +437,14 @@ async def admin_catalog(
     manifest = curator_manifest()
     return {
         "catalog_refresh": getattr(request.app.state, "catalog_refresh", {}),
+        "catalog_diff": getattr(get_catalog_coordinator(), "last_diff", None),
+        "probe_results": getattr(get_catalog_coordinator(), "last_probe_results", []),
         "active_catalog": catalog.model_dump(),
         "routing_source": routing_source(),
         "curator": getattr(request.app.state, "curator", {}),
         "manifest": manifest.model_dump() if manifest else None,
         "model_health": or_client.model_health.snapshot(),
+        "bandit_stats": get_model_stats().snapshot(),
         "key_pool_quota": or_client.key_pool.quota_snapshot(),
     }
 
@@ -490,7 +558,11 @@ async def chat_completions(
     if stream:
         stream_chain = chain if settings.auto_route_model else [str(body.get("model", chain[0]))]
         try:
-            byte_iter, or_meta = await or_client.chat_completions_stream(body, model_chain=stream_chain)
+            byte_iter, or_meta = await or_client.chat_completions_stream(
+                body,
+                model_chain=stream_chain,
+                catalog_section=router_suggestion.get("catalog_section"),
+            )
         except OpenRouterExhaustedError as e:
             trace = build_trace(
                 classification=classification,
@@ -570,7 +642,11 @@ async def chat_completions(
         )
         logger.info("execution_trace %s", json.dumps(trace, ensure_ascii=False))
         try:
-            out, or_meta = await or_client.chat_completions(body, model_chain=single_chain)
+            out, or_meta = await or_client.chat_completions(
+                body,
+                model_chain=single_chain,
+                catalog_section=router_suggestion.get("catalog_section"),
+            )
         except OpenRouterExhaustedError as e:
             return JSONResponse(
                 status_code=503,
@@ -595,7 +671,11 @@ async def chat_completions(
         return JSONResponse(content=out, headers={"X-GPTHub-Trace": trace_to_header_value(trace)})
 
     try:
-        out, or_meta = await or_client.chat_completions(body, model_chain=chain)
+        out, or_meta = await or_client.chat_completions(
+            body,
+            model_chain=chain,
+            catalog_section=router_suggestion.get("catalog_section"),
+        )
     except OpenRouterExhaustedError as e:
         fb_meta = {
             "enabled": True,

@@ -53,6 +53,26 @@ class Settings(BaseSettings):
         le=168.0,
         description="Periodic live catalog refresh interval; 0 disables background refresh",
     )
+    openrouter_probe_on_refresh: bool = Field(
+        default=True,
+        description="Micro-probe head slug per catalog section after refresh",
+    )
+    openrouter_probe_max_models: int = Field(default=4, ge=1, le=8)
+    openrouter_probe_delay_seconds: float = Field(default=1.5, ge=0.0, le=10.0)
+    openrouter_catalog_denylist: str = Field(
+        default="",
+        description="Comma-separated extra model id slugs to exclude from scoring",
+    )
+    openrouter_bandit_enabled: bool = Field(
+        default=True,
+        description="Enable EMA bandit periodic chain resort",
+    )
+    openrouter_bandit_resort_interval_minutes: float = Field(default=30.0, ge=5.0, le=1440.0)
+    openrouter_bandit_min_samples: int = Field(default=5, ge=1, le=100)
+    openrouter_curator_merge_mode: Literal["overlay", "replace"] = Field(
+        default="overlay",
+        description="How curator manifest merges with heuristic catalog",
+    )
     openrouter_model_ban_after_429: int = Field(default=3, ge=1, le=20)
     openrouter_model_ban_ttl_seconds: float = Field(default=3600.0, ge=60.0, le=86400.0)
     openrouter_curator_enabled: bool = Field(
@@ -60,7 +80,7 @@ class Settings(BaseSettings):
         description="Run async LLM curator on startup to refine routing manifest",
     )
     openrouter_curator_model: str = Field(
-        default="google/gemma-3-12b-it:free",
+        default="google/gemma-4-26b-a4b-it:free",
         description="Free OpenRouter model for curator structured JSON",
     )
     openrouter_curator_timeout: float = Field(default=60.0, ge=10.0, le=300.0)
@@ -94,10 +114,10 @@ class Settings(BaseSettings):
         description="Optional path to free_models_catalog.yaml",
     )
     default_text_model: str = Field(
-        default="google/gemma-3-4b-it:free",
+        default="liquid/lfm-2.5-1.2b-instruct:free",
         description="Fallback slug when auto_route_model is false",
     )
-    default_vision_model: str = Field(default="qwen/qwen3.6-plus:free")
+    default_vision_model: str = Field(default="google/gemma-4-26b-a4b-it:free")
     log_level: str = Field(default="INFO")
     inject_request_datetime: bool = Field(default=True)
     orchestrator_clock_tz: str = Field(default="UTC")
@@ -153,6 +173,11 @@ class Settings(BaseSettings):
         if not self.orchestrator_admin_api_key.strip():
             self.orchestrator_admin_api_key = self.orchestrator_api_key
         return self
+
+    def openrouter_catalog_denylist_list(self) -> list[str]:
+        if not self.openrouter_catalog_denylist.strip():
+            return []
+        return [s.strip() for s in self.openrouter_catalog_denylist.split(",") if s.strip()]
 
 
 def load_settings() -> Settings:

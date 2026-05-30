@@ -121,5 +121,5 @@ def assert_trace_invariants(
         if model_used not in attempt_models and model_used not in chain:
             raise AssertionError(f"model_used {model_used!r} not in chain {chain!r}")
     routing_src = rs.get("routing_source") or trace.get("routing_source")
-    if routing_src is not None and routing_src not in ("heuristic", "curator"):
+    if routing_src is not None and routing_src not in ("heuristic", "curator", "bandit"):
         raise AssertionError(f"invalid routing_source: {routing_src!r}")

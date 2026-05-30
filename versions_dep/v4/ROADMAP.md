@@ -12,6 +12,10 @@ Legacy v1–v3: [versions_dep/LEGACY.md](../LEGACY.md) — не удаляем, 
 | Область | Статус |
 |---------|--------|
 | Live catalog refresh при старте | ✅ |
+| Role-specific catalog chains (scorer) | ✅ |
+| Catalog coordinator lock (refresh/curator/bandit) | ✅ |
+| Micro-probe on refresh (default ON) | ✅ |
+| Bandit EMA resort | ✅ |
 | Model/key fallback (non-stream + stream) | ✅ |
 | Runtime health ban после 429 | ✅ |
 | Async LLM Model Curator (opt-in) | ✅ |
@@ -65,11 +69,12 @@ Env:
 
 ```bash
 OPENROUTER_CURATOR_ENABLED=true
-OPENROUTER_CURATOR_MODEL=google/gemma-3-12b-it:free
+OPENROUTER_CURATOR_MODEL=google/gemma-4-26b-a4b-it:free
+OPENROUTER_CURATOR_MERGE_MODE=overlay
 OPENROUTER_CURATOR_TIMEOUT=60
 ```
 
-Trace: `routing_source: heuristic | curator`, `manifest_version`.
+Trace: `routing_source: heuristic | curator | bandit`, `manifest_version`.
 
 ---
 
@@ -127,7 +132,7 @@ Trace: `routing_source: heuristic | curator`, `manifest_version`.
 
 | ID | Pri | Effort | Задача | Источник |
 |----|-----|--------|--------|----------|
-| P1 | P0 | 0.5d | Catalog refresh + curator: async lock (F2) | Staff |
+| P1 | P0 | 0.5d | Catalog refresh + curator: async lock (F2) | Staff | ✅ |
 | P2 | P0 | 1d | Vision fallback: retry chain on 400/422, не только 429/5xx | Live sim |
 | P3 | P1 | 0.5d | Отдельный admin key в ZERO_ENTRY / prod checklist (F1) | Staff |
 | P4 | P1 | 0.5d | Удалить или реализовать `ingest_image_fetch_timeout` (F6) | Staff |
