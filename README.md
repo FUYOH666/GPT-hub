@@ -1,12 +1,36 @@
 # GPTHub
 
-**Стартовая точка** для сборки хакатонного или учебного стека «чат + маршрутизация моделей + RAG»: можно **форкнуть** и подставить свой кейс. Официальное **ТЗ конкретной площадки** всегда сверяйте отдельно после публикации ([True Tech Arena](https://truetecharena.ru/) и т.п.) — этот репозиторий — **заготовка и идеи**, не обещание совпадения с финальными ограничениями жюри.
+**OpenRouter free за 3 команды** — один ключ, Docker, чат в браузере. Оркестратор сам выбирает бесплатную модель, переключается при 429 и показывает trace «кто ответил».
 
-Изначально ориентир — **МТС True Tech Hack 2026**, кейс **MWS GPT**: единый чат с мультимодальным вводом, маршрутизацией моделей и памятью/RAG — сборка из готовых OSS-слоёв и тонкая доработка (оркестратор).
+Пошагово для всех: **[docs/ZERO_ENTRY.md](docs/ZERO_ENTRY.md)**.
 
 ## Статус
 
-**Исследовательский прототип:** несколько быстрых итераций за короткий спринт, не «финальный продукт соревнования». Текущий компромисс — **локальный instruct** (если есть GPU за gateway) + **OpenRouter** для vision и резервных текстовых вызовов где настроено (см. [versions_dep/v2_c2/litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml), [versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml](versions_dep/v3/apps/orchestrator/gpthub_orchestrator/data/model_roles.yaml)). Очередность фаз и бэклог: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
+**Активная линия — v4 (OpenRouter Free Survival Engine):** Open WebUI → оркестратор → OpenRouter free-модели напрямую. См. [versions_dep/v4/README.md](versions_dep/v4/README.md).
+
+**Legacy — v1–v3:** [versions_dep/LEGACY.md](versions_dep/LEGACY.md) (hybrid LiteLLM, локальный instruct — архив).
+
+## Быстрый старт (v4)
+
+```bash
+cd versions_dep/v4
+cp .env.example .env   # ORCHESTRATOR_API_KEY, OPENROUTER_API_KEY, WEBUI_SECRET_KEY
+docker compose up -d --build
+```
+
+- Open WebUI: http://localhost:3000  
+- Trace decoder: http://localhost:8089/trace  
+- Подробности: [docs/ZERO_ENTRY.md](docs/ZERO_ENTRY.md)
+
+---
+
+<details>
+<summary>Контекст: хакатон, история репозитория</summary>
+
+**Стартовая точка** для сборки хакатонного или учебного стека «чат + маршрутизация моделей + RAG»: можно **форкнуть** и подставить свой кейс. Официальное **ТЗ конкретной площадки** всегда сверяйте отдельно после публикации ([True Tech Arena](https://truetecharena.ru/) и т.п.) — этот репозиторий — **заготовка и идеи**, не обещание совпадения с финальными ограничениями жюри.
+
+Изначально ориентир — **МТС True Tech Hack 2026**, кейс **MWS GPT**: единый чат с мультимодальным вводом, маршрутизацией моделей и памятью/RAG — сборка из готовых OSS-слоёв и тонкая доработка (оркестратор).
+</details>
 
 ## Идеи для улучшения (кратко)
 
@@ -14,7 +38,7 @@
 - Более **умный fallback** при 429/недоступности upstream.
 - Выбор или ранжирование моделей по **цена / качество / латентность** под тип задачи.
 
-Детали и другие направления: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) (раздел «LiteLLM / OpenRouter: идеи развития»).
+Детали: [versions_dep/v4/ROADMAP.md](versions_dep/v4/ROADMAP.md).
 
 ## Зачем репозиторий открыт
 
@@ -31,8 +55,13 @@
 | [README.md](README.md) | Точка входа в репозиторий (этот файл) |
 | [docs/HACKATHON_STARTER.md](docs/HACKATHON_STARTER.md) | **Чеклист** для форка: env, compose, модели, ТЗ площадки |
 | [docs/HACKATHON_TEAM_SYNC.md](docs/HACKATHON_TEAM_SYNC.md) | **Команда:** текст для чата (Telegram), тезисы до/после ТЗ площадки |
-| [versions_dep/v3/README.md](versions_dep/v3/README.md) | **Актуальный запуск Docker**, переменные, troubleshooting |
-| [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md) | Архитектура v3: WebUI → orchestrator → LiteLLM |
+| [docs/ZERO_ENTRY.md](docs/ZERO_ENTRY.md) | **Нулевой вход:** ключ OR → `.env` → docker → первый чат |
+| [versions_dep/v4/README.md](versions_dep/v4/README.md) | **Актуальный запуск Docker** — OpenRouter Free Survival Engine |
+| [versions_dep/v4/ROADMAP.md](versions_dep/v4/ROADMAP.md) | Дорожная карта v4 (продукт) |
+| [versions_dep/LEGACY.md](versions_dep/LEGACY.md) | Таблица v1→v4 (архив) |
+| [versions_dep/v4/ARCHITECTURE.md](versions_dep/v4/ARCHITECTURE.md) | Архитектура v4: WebUI → orchestrator → OpenRouter |
+| [versions_dep/v3/README.md](versions_dep/v3/README.md) | *Legacy:* hybrid LiteLLM + локальный instruct |
+| [versions_dep/v3/ARCHITECTURE.md](versions_dep/v3/ARCHITECTURE.md) | *Legacy:* WebUI → orchestrator → LiteLLM |
 | [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md) | Бэклог и фазы разработки |
 | [versions_dep/v3/CONTINUATION.md](versions_dep/v3/CONTINUATION.md) | Handoff для нового чата: Docker v2↔v3, промпт |
 | [CONSTRUCTOR.md](CONSTRUCTOR.md) | *Опционально для конкурса:* build/buy, OSS, риски, сроки |
@@ -52,13 +81,23 @@
 | [docs/DEMO_PROMPTS.md](docs/DEMO_PROMPTS.md) | Готовые запросы для демо и проверки `X-GPTHub-Trace` |
 | [docs/WEBUI-PAYLOAD.md](docs/WEBUI-PAYLOAD.md) | Формат `messages` Open WebUI → оркестратор (ingest PDF/аудио) |
 
-**Архив эксперимента:** [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md) — не отражает текущий v3.
+**Архив:** [versions_dep/v1_z/LEGACY.md](versions_dep/v1_z/LEGACY.md). **Legacy hybrid:** v3 (см. выше).
 
 Конфигурация: в каталоге стека скопируйте `.env.example` в `.env` (**не коммитьте** `.env`, реальные IP и ключи).
 
-## Быстрый старт (Docker) — v3
+## Быстрый старт (Docker) — v4
 
-Активная разработка ведётся в **v3** (orchestrator + тот же `litellm/config.yaml`, что и у v2).
+1. Перейти в [versions_dep/v4](versions_dep/v4): `cp .env.example` → `.env`, заполнить `ORCHESTRATOR_API_KEY`, `OPENROUTER_API_KEY`, `WEBUI_SECRET_KEY`.
+2. `docker compose up -d --build`
+
+- Open WebUI: http://localhost:3000  
+- Подробности: [versions_dep/v4/README.md](versions_dep/v4/README.md)
+
+**v3** ([versions_dep/v3](versions_dep/v3)): legacy hybrid — **не поднимать одновременно с v4** (порты 3000/8089).
+
+## Быстрый старт (Docker) — v3 (legacy)
+
+Замороженный hybrid-стек (orchestrator + LiteLLM + локальный instruct).
 
 1. **Официальную задачу** кейса уточните на площадке соревнования (для MWS GPT см. [truetecharena.ru](https://truetecharena.ru/) — дата публикации ограничений может быть позже старта репо).
 2. Перейти в [versions_dep/v3](versions_dep/v3): `cp .env.example` → `.env`, заполнить переменные (см. [v3/README.md](versions_dep/v3/README.md)).
@@ -67,7 +106,7 @@
 - Open WebUI: http://localhost:3000  
 - Подробности, RAG/PDF, порты: [versions_dep/v3/README.md](versions_dep/v3/README.md)
 
-**v2_c2** ([versions_dep/v2_c2](versions_dep/v2_c2)): заморозка — Open WebUI **напрямую** в LiteLLM; **не поднимать одновременно с v3** (порты 3000/4000). Файл [litellm/config.yaml](versions_dep/v2_c2/litellm/config.yaml) **монтируется в v3** — правки алиасов и провайдеров делать в одном месте. Дорожная карта активной работы: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
+**v2_c2** ([versions_dep/v2_c2](versions_dep/v2_c2)): заморозка — Open WebUI **напрямую** в LiteLLM. Дорожная карта v3: [versions_dep/v3/ROADMAP.md](versions_dep/v3/ROADMAP.md).
 
 ## Доступ команды в интернете
 

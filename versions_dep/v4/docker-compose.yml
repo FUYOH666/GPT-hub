@@ -1,0 +1,141 @@
+# GPTHub v4 — Open WebUI → Orchestrator → OpenRouter (Free Survival Engine)
+# См. README.md, ARCHITECTURE.md
+
+services:
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gpthub-v4-orchestrator
+    restart: unless-stopped
+    ports:
+      - "8089:8000"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENROUTER_KEYS: ${OPENROUTER_KEYS:-}
+      OPENROUTER_API_BASE: ${OPENROUTER_API_BASE:-https://openrouter.ai/api/v1}
+      OR_SITE_URL: ${OR_SITE_URL:-http://localhost:3000}
+      OR_APP_NAME: ${OR_APP_NAME:-GPTHub}
+      OPENROUTER_RPM_LIMIT: ${OPENROUTER_RPM_LIMIT:-20}
+      OPENROUTER_KEY_COOLDOWN_SECONDS: ${OPENROUTER_KEY_COOLDOWN_SECONDS:-14400}
+      OPENROUTER_QUOTA_TIMEZONE: ${OPENROUTER_QUOTA_TIMEZONE:-UTC}
+      OPENROUTER_TIMEOUT_SECONDS: ${OPENROUTER_TIMEOUT_SECONDS:-600}
+      OPENROUTER_REFRESH_CATALOG_ON_STARTUP: ${OPENROUTER_REFRESH_CATALOG_ON_STARTUP:-true}
+      OPENROUTER_CATALOG_PERSIST_ON_REFRESH: ${OPENROUTER_CATALOG_PERSIST_ON_REFRESH:-true}
+      OPENROUTER_CATALOG_TEXT_LIMIT: ${OPENROUTER_CATALOG_TEXT_LIMIT:-4}
+      OPENROUTER_CATALOG_VISION_LIMIT: ${OPENROUTER_CATALOG_VISION_LIMIT:-5}
+      OPENROUTER_CATALOG_FAIL_ON_REFRESH_ERROR: ${OPENROUTER_CATALOG_FAIL_ON_REFRESH_ERROR:-false}
+      ORCHESTRATOR_API_KEY: ${ORCHESTRATOR_API_KEY}
+      AUTO_ROUTE_MODEL: ${AUTO_ROUTE_MODEL:-true}
+      CODE_ROUTE_PREFERENCE: ${CODE_ROUTE_PREFERENCE:-openrouter}
+      ORCHESTRATOR_OPENROUTER_FALLBACK: ${ORCHESTRATOR_OPENROUTER_FALLBACK:-true}
+      ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS: ${ORCHESTRATOR_FALLBACK_MAX_ATTEMPTS:-8}
+      MODEL_ROLES_PATH: ${MODEL_ROLES_PATH:-}
+      ROLE_PROMPTS_PATH: ${ROLE_PROMPTS_PATH:-}
+      FREE_MODELS_CATALOG_PATH: ${FREE_MODELS_CATALOG_PATH:-}
+      INJECT_REQUEST_DATETIME: ${INJECT_REQUEST_DATETIME:-true}
+      ORCHESTRATOR_CLOCK_TZ: ${ORCHESTRATOR_CLOCK_TZ:-UTC}
+      ORCHESTRATOR_MODELS_CATALOG: ${ORCHESTRATOR_MODELS_CATALOG:-single_public}
+      ORCHESTRATOR_PUBLIC_MODEL_ID: ${ORCHESTRATOR_PUBLIC_MODEL_ID:-gpt-hub}
+      GREETING_CANNED_RESPONSE_ENABLED: ${GREETING_CANNED_RESPONSE_ENABLED:-false}
+      GREETING_CANNED_MESSAGE: "${GREETING_CANNED_MESSAGE:-Привет! Чем могу помочь?}"
+      ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE: ${ORCHESTRATOR_STRIP_KNOWN_COT_PREAMBLE:-false}
+      ORCHESTRATOR_REQUEST_REASONING_EXCLUDE: ${ORCHESTRATOR_REQUEST_REASONING_EXCLUDE:-true}
+      ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE: ${ORCHESTRATOR_STRIP_REASONING_FROM_RESPONSE:-true}
+      INGEST_ENABLED: ${INGEST_ENABLED:-true}
+      ORCHESTRATOR_ASR_BASE_URL: ${ORCHESTRATOR_ASR_BASE_URL:-}
+      ORCHESTRATOR_ASR_API_KEY: ${ORCHESTRATOR_ASR_API_KEY:-local-asr}
+      ORCHESTRATOR_ASR_MODEL: ${ORCHESTRATOR_ASR_MODEL:-whisper-1}
+    networks:
+      - gpthub-v4-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  embedding-shim:
+    profiles:
+      - rag
+    build:
+      context: ./embedding_shim
+      dockerfile: Dockerfile
+    container_name: gpthub-v4-embedding-shim
+    restart: unless-stopped
+    environment:
+      BGE_EMBEDDING_UPSTREAM: ${BGE_EMBEDDING_UPSTREAM:-http://host.docker.internal:9001}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - gpthub-v4-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    container_name: gpthub-v4-open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-v4-data:/app/backend/data
+    environment:
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+      WEBUI_URL: ${WEBUI_URL:-http://localhost:3000}
+      ENABLE_SIGNUP: ${ENABLE_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-pending}
+      ENABLE_PERSISTENT_CONFIG: ${ENABLE_PERSISTENT_CONFIG:-true}
+      ENABLE_PASSWORD_VALIDATION: ${ENABLE_PASSWORD_VALIDATION:-false}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
+      WEBUI_ADMIN_NAME: ${WEBUI_ADMIN_NAME:-Admin}
+      OPENAI_API_BASE_URL: http://orchestrator:8000/v1
+      OPENAI_API_KEY: ${ORCHESTRATOR_API_KEY}
+      DEFAULT_MODELS: ${DEFAULT_MODELS:-gpt-hub}
+      DEFAULT_PINNED_MODELS: ${DEFAULT_PINNED_MODELS:-gpt-hub}
+      BYPASS_MODEL_ACCESS_CONTROL: ${BYPASS_MODEL_ACCESS_CONTROL:-true}
+      TASK_MODEL_EXTERNAL: ${TASK_MODEL_EXTERNAL:-gpt-hub}
+      ENABLE_MEMORIES: ${ENABLE_MEMORIES:-true}
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE:-openai}
+      RAG_OPENAI_API_BASE_URL: ${RAG_OPENAI_API_BASE_URL:-http://embedding-shim:8000/v1}
+      RAG_OPENAI_API_KEY: ${RAG_OPENAI_API_KEY:-local-embedding}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-BAAI/bge-m3}
+      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE:-external}
+      RAG_EXTERNAL_RERANKER_URL: ${RAG_EXTERNAL_RERANKER_URL:-http://host.docker.internal:9002/v1/rerank}
+      RAG_EXTERNAL_RERANKER_API_KEY: ${RAG_EXTERNAL_RERANKER_API_KEY:-}
+      AUDIO_STT_ENGINE: ${AUDIO_STT_ENGINE:-openai}
+      AUDIO_STT_OPENAI_API_BASE_URL: ${AUDIO_STT_OPENAI_API_BASE_URL:-}
+      AUDIO_STT_OPENAI_API_KEY: ${AUDIO_STT_OPENAI_API_KEY:-local-asr}
+      AUDIO_STT_MODEL: ${AUDIO_STT_MODEL:-whisper-1}
+      AUDIO_STT_SUPPORTED_CONTENT_TYPES: ${AUDIO_STT_SUPPORTED_CONTENT_TYPES:-audio/*,video/webm}
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-tavily}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      WEBUI_BANNERS: ${WEBUI_BANNERS:-}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    networks:
+      - gpthub-v4-net
+
+networks:
+  gpthub-v4-net:
+    driver: bridge
+
+volumes:
+  open-webui-v4-data:

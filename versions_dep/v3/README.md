@@ -1,5 +1,7 @@
 # GPTHub Workspace — `versions_dep/v3`
 
+> **Legacy:** активная разработка в [v4](../v4/README.md) (OpenRouter Free Survival Engine). v3 — hybrid LiteLLM + локальный instruct. Не поднимать одновременно с v4 (порты 3000/8089).
+
 **Open WebUI (UI)** + **GPTHub Orchestrator (FastAPI)** + **LiteLLM (gateway к моделям)**.
 
 Отличие от [v2_c2](../v2_c2): вся продуктовая логика (маршрутизация, будущий perception, память, trace) живёт **в оркестраторе**, а не в настройках WebUI/LiteLLM.

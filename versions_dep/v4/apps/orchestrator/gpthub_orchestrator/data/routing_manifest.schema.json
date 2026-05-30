@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RoutingManifest",
+  "type": "object",
+  "required": ["version", "roles"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "roles": {
+      "type": "object",
+      "required": ["fast_text", "text_code", "text_doc", "vision"],
+      "properties": {
+        "fast_text": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "text_code": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "text_doc": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "vision": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "additionalProperties": false
+    },
+    "rationale_short": { "type": "string" }
+  },
+  "additionalProperties": false
+}

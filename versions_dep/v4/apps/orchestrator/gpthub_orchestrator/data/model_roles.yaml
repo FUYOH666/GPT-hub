@@ -1,0 +1,16 @@
+# OpenRouter free model chains via free_models_catalog.yaml (v4).
+# chain: catalog.<section> resolves to slug list at runtime.
+version: 2
+roles:
+  fast_text_chat:
+    chain: catalog.text_fast
+  fast_text:
+    chain: catalog.text_fast
+  reasoning_code_local:
+    chain: catalog.text_code
+  reasoning_code_openrouter:
+    chain: catalog.text_code
+  vision_general:
+    chain: catalog.vision
+  doc_synthesis:
+    chain: catalog.text_doc

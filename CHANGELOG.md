@@ -2,7 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- **v4 product roadmap:** stream model fallback, runtime model health ban (429 TTL), periodic catalog refresh (`OPENROUTER_CATALOG_REFRESH_INTERVAL_HOURS`), async LLM Model Curator (`OPENROUTER_CURATOR_ENABLED`), RU `openrouter_exhausted` messages, `/trace` decoder page, `/v1/admin/catalog`, [docs/ZERO_ENTRY.md](docs/ZERO_ENTRY.md), [versions_dep/v4/ROADMAP.md](versions_dep/v4/ROADMAP.md), [versions_dep/LEGACY.md](versions_dep/LEGACY.md).
+
+- **v4 — OpenRouter Free Survival Engine** ([versions_dep/v4](versions_dep/v4)): orchestrator calls OpenRouter directly (no LiteLLM); `OpenRouterClient` + `KeyPool` (multi-key rotation, RPM throttle, cooldown); `free_models_catalog.yaml` + role chains via `catalog.*`; extended `X-GPTHub-Trace` (`model_attempts`, `quota_remaining`); CLI `--write-catalog` / `--suggest-text-chain`; weekly workflow [`.github/workflows/openrouter-catalog.yml`](.github/workflows/openrouter-catalog.yml). CI pytest targets v4.
+
 ### Changed
+
+- Root [README.md](README.md) and [AGENTS.md](AGENTS.md): v4 is active product line; v3 marked legacy hybrid.
 
 - [AUTHORS.md](AUTHORS.md), [README.md](README.md), метаданные пакета оркестратора: в публичном дереве указаны только фактические авторы опубликованного кода.
 - Удалён внутренний черновик `docs/ISSUES_REPLY_DRAFTS_USATOV.md` из публичного репо; комментарии в issues обновлены без ссылки на него.

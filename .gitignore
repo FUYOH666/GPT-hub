@@ -4,6 +4,7 @@
 *.key
 credentials.*
 compose-setup.log
+**/free_models_catalog.runtime.yaml
 .pytest_cache/
 .venv/
 **/.venv/

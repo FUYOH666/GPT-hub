@@ -1,0 +1,15 @@
+# Пример для cloudflared (не коммитить credentials и реальные UUID).
+# Скопируйте в ~/.cloudflared/config.yml или укажите путь через --config
+#
+# 1) cloudflared tunnel login
+# 2) cloudflared tunnel create gpthub-webui
+# 3) Подставьте tunnel UUID и credentials-file из вывода cloudflared
+# 4) Замените hostname на ваш поддомен в Cloudflare DNS
+
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: REPLACE_WITH_PATH_TO_CREDENTIALS_JSON
+
+ingress:
+  - hostname: chat.example.com
+    service: http://127.0.0.1:3000
+  - service: http_status:404
