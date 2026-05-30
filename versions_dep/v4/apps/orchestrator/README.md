@@ -26,10 +26,12 @@ uv run python -m gpthub_orchestrator.tools.list_free_models --suggest-vision-cha
 
 `ORCHESTRATOR_MODELS_CATALOG=single_public` — одна модель `gpt-hub` в UI; `all` — все slug'и из catalog.
 
-## Health
+## Health & ops
 
 - `GET /healthz` — liveness
-- `GET /readyz` — OpenRouter `/models` reachable
+- `GET /readyz` — OpenRouter `/models` reachable + catalog refresh meta
+- `GET /trace` — decode `X-GPTHub-Trace` (HTML)
+- `GET /v1/admin/catalog` — catalog, curator, bans, quota (Bearer admin key)
 
 ## Ingest
 
