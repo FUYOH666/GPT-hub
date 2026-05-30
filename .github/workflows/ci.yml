@@ -15,6 +15,7 @@ jobs:
     env:
       OPENROUTER_API_KEY: or-ci-test-key
       ORCHESTRATOR_API_KEY: ci-test-key
+      OPENROUTER_PROBE_ON_REFRESH: "false"
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
