@@ -92,7 +92,8 @@ curl -s -H "Authorization: Bearer $ORCHESTRATOR_API_KEY" \
 4. 429 on slug → health ban → chain skips slug
 5. Curator enabled → `routing_source: curator`; ops invariants still pass
 
-Отчёты: `reports/ops-mock.json`, `reports/ops-live.json` (+ `.md` summary).
+Отчёты: `reports/ops-mock.json`, `reports/ops-live.json` (+ `.md` summary).  
+Staff review: [docs/reviews/2026-05-30-v4-staff-review.md](../../docs/reviews/2026-05-30-v4-staff-review.md) · Demo: [docs/DEMO_PROMPTS.md](../../docs/DEMO_PROMPTS.md).
 
 ## Тесты
 

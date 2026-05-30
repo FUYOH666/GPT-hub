@@ -34,7 +34,25 @@ bash scripts/run_ops_simulator.sh live
 |----------|------------|
 | `GET /readyz` | OpenRouter + live catalog meta |
 | `GET /trace` | Декодер trace (не публиковать наружу) |
-| `GET /v1/admin/catalog` | Bearer admin — bans, quota, curator |
+| `GET /v1/admin/catalog` | Bearer admin — catalog, diff, probe, bandit, bans, quota, curator |
+
+### Admin catalog (`GET /v1/admin/catalog`)
+
+Поля после control loop (2026-05):
+
+| Поле | Смысл |
+|------|--------|
+| `active_catalog.text_fast` / `text_code` / `text_doc` / `vision` | Разные цепочки slug по ролям |
+| `catalog_diff.sections.*.added/removed/reordered` | Что изменилось при последнем refresh |
+| `probe_results[]` | Micro-probe при refresh: `{section, slug, ok, status_code}` |
+| `bandit_stats.by_section` | EMA success/latency/429 по slug; resort каждые ~30 мин |
+| `routing_source` | `heuristic` \| `curator` \| `bandit` |
+| `model_health.banned` | Slug временно исключены после N×429 |
+
+```bash
+curl -s -H "Authorization: Bearer $ORCHESTRATOR_API_KEY" \
+  http://localhost:8089/v1/admin/catalog | jq '.routing_source, .probe_results, .active_catalog.text_fast, .active_catalog.text_code'
+```
 
 ## Fault scenarios (только mock simulator)
 

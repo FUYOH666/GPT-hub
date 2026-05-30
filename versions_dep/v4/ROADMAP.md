@@ -144,4 +144,6 @@ Trace: `routing_source: heuristic | curator | bandit`, `manifest_version`.
 
 **Simulator (готово):** `bash scripts/run_ops_simulator.sh mock|live` — см. [README.md](README.md) Validation.
 
+**Validation sprint (закрыто 2026-05-30):** R1 golden/invariants без hardcoded slug · R2 DEMO_PROMPTS v4 · R3 ops_simulator mock в CI · control loop (role_scorer, probe, bandit, lock).
+
 **Live note:** при rate limit OpenRouter live-проход засчитывает **routing OK (degraded)**, если trace содержит верные `model_role` / `task_type`, даже при HTTP 503.

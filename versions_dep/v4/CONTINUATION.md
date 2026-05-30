@@ -8,11 +8,11 @@ Copy this file or the **prompt section** into a new chat session.
 
 | Area | Status |
 |------|--------|
-| **v4** (`versions_dep/v4`) | **Active product.** Open WebUI → FastAPI orchestrator → OpenRouter free models (Survival Engine: key pool, RPM, 429 fallback, catalog refresh). |
+| **v4** (`versions_dep/v4`) | **Active product.** Open WebUI → orchestrator → OpenRouter. **Auto catalog control loop:** role_scorer, probe-on-refresh, bandit EMA, curator overlay (opt-in). |
 | **v3** (`versions_dep/v3`) | **Legacy frozen** — LiteLLM hybrid. Do not run alongside v4 (ports 3000/8089). |
 | **Hackathon docs** | Archived under [docs/archive/hackathon/](../../docs/archive/hackathon/README.md). |
 
-**Backlog:** [ROADMAP.md](ROADMAP.md) — especially **Post-validation backlog** (P1–P9). Staff review: [docs/reviews/2026-05-30-v4-staff-review.md](../../docs/reviews/2026-05-30-v4-staff-review.md).
+**Backlog:** [ROADMAP.md](ROADMAP.md) — **P2** (vision 400/422 fallback), **P6** (curator A/B в ops_simulator). Закрыто: P1 (catalog lock), control loop sprint.
 
 ---
 
